@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Kitchen Panel</title>
+<style>
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        display: flex;
+        margin: 0;
+        height: 100vh;
+        background: #0f172a;
+        color: #e2e8f0;
+    }
+
+    #detail-panel {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        background: #0f172a;
+        width: 100%;
+    }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    th,
+    td {
+        border: 1px solid #334155;
+        padding: 10px;
+        text-align: center;
+        color: #e2e8f0;
+    }
+
+    th {
+        background: #1e293b;
+        font-weight: 700;
+    }
+
+    button {
+        padding: 6px 12px;
+        background: #0ea5e9;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: #0284c7;
+    }
+
+    #notifications-box {
+        background: #3b2f00;
+        border: 1px solid #a48200;
+        padding: 10px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+        font-weight: 700;
+        color: #ffec78;
+        display: none;
+    }
+
+    .order-note {
+        font-size: 12px;
+        color: #000000;
+        font-style: italic;
+        margin-top: 4px;
+    }
+</style>
+<script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div id="detail-panel">
+        <h2 id="panelTitle">ACTIVE KITCHEN ORDERS</h2>
+        <div id="notifications-box"></div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Table</th>
+                    <th>Product</th>
+                    <th>Qty</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="ordersBody"></tbody>
+        </table>
+    </div>
+
+<script>
+    const tableColors = ["#0ea5e9", "#3b82f6", "#6366f1", "#8b5cf6", "#a855f7", "#ec4899", "#f43f5e", "#14b8a6", "#10b981", "#22c55e"];
+    const getTableColor = n => tableColors[(Number(n) - 1) % tableColors.length];
+
+    // --- state ---
+    let allOrders = [];
+
+    // --- load ---
+    async function loadData() {
+        try {
+            const res = await fetch("/api/orders");
+            allOrders = await res.json();
+            renderDetails();
+        } catch (e) {
+            console.error("Error loading data:", e);
+        }
+    }
+
+    async function markAsReady(idList) {
+        if (!confirm(`Mark ${idList.length} items as READY?`)) return;
+        try {
+            await fetch("/api/order-ready", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ orderIds: idList })
+            });
+            loadData();
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    function renderDetails() {
+        const ordersBody = document.getElementById("ordersBody");
+        const panelTitle = document.getElementById("panelTitle");
+        const notificationsBox = document.getElementById("notifications-box");
+
+        ordersBody.innerHTML = "";
+        notificationsBox.style.display = 'none';
+        panelTitle.textContent = "ACTIVE KITCHEN ORDERS";
+
+        const activeOrders = allOrders
+            .filter(s => !s.isPaid && s.status === 'Received' && s.productId?.prepLocation === 'Kitchen')
+            .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        const groupedOrdersMap = new Map();
+        const GROUPING_TIME_MS = 15000;
+
+        activeOrders.forEach(s => {
+            const productId = s.productId?._id || 'deleted_product';
+            const note = s.note || '';
+            const table = s.tableNo;
+            const orderTime = new Date(s.date).getTime();
+            let groupFound = false;
+
+            for (const [key, group] of groupedOrdersMap.entries()) {
+                const [groupProdId, groupNote, groupTable, groupTimeStr] = key.split('-');
+                const groupTime = Number(groupTimeStr);
+                if (groupProdId === productId && groupNote === note && groupTable === String(table) && (orderTime - groupTime) < GROUPING_TIME_MS) {
+                    group.totalQuantity += (s.quantity || 1);
+                    group.orderIds.push(s._id);
+                    groupFound = true;
+                    break;
+                }
+            }
+
+            if (!groupFound) {
+                const newKey = `${productId}-${note}-${table}-${orderTime}`;
+                groupedOrdersMap.set(newKey, {
+                    tableNo: table,
+                    productName: s.productId?.name || "Deleted Product",
+                    totalQuantity: (s.quantity || 1),
+                    date: s.date,
+                    note: note,
+                    orderIds: [s._id],
+                    status: s.status
+                });
+            }
+        });
+
+        if (groupedOrdersMap.size === 0) {
+            ordersBody.innerHTML = `<tr><td colspan="5" style="padding: 20px;">No new orders to prepare.</td></tr>`;
+            return;
+        }
+
+        const sortedGroups = Array.from(groupedOrdersMap.values()).sort((a, b) => {
+            if (a.tableNo !== b.tableNo) return a.tableNo - b.tableNo;
+            return new Date(a.date) - new Date(b.date);
+        });
+
+        sortedGroups.forEach(group => {
+            const rowColor = getTableColor(group.tableNo);
+            const idListJson = JSON.stringify(group.orderIds);
+            const noteHtml = group.note ? `<div class="order-note">Note: ${group.note}</div>` : '';
+
+            ordersBody.innerHTML += `
+                <tr style="background:${rowColor}; color:#fff; font-weight:700;">
+                    <td>${group.tableNo}</td>
+                    <td>${group.productName}${noteHtml}</td>
+                    <td>${group.totalQuantity}</td>
+                    <td>${new Date(group.date).toLocaleTimeString()}</td>
+                    <td>
+                        <button style="background:#10b981; color:#000; font-weight:700;"
+                                onclick='markAsReady(${idListJson})'>
+                            MARK READY
+                        </button>
+                    </td>
+                </tr>`;
+        });
+    }
+
+    const socket = io();
+    socket.on('update_orders', loadData);
+    loadData();
+</script>
+</body>
+</html>

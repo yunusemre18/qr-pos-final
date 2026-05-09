@@ -1,0 +1,2168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Customer Panel</title>
+<style>
+:root {
+    --bg: #0b1020;
+    --panel: #12182b;
+    --card: #17213a;
+    --muted: #90a0c0;
+    --text: #e8eefc;
+    --brand: #16a085;
+    --brand-2: #149174;
+    --accent: #2b59ff;
+    --danger: #e74c3c;
+    --shadow: 0 8px 24px rgba(0, 0, 0, .35);
+    --glass: rgba(255, 255, 255, .06);
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    background: radial-gradient(1200px 600px at 50% -200px, #1a2344 0%, #0b1020 55%) fixed;
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    scroll-behavior: smooth;
+    overscroll-behavior-y: contain;
+}
+
+body.modal-open {
+    overflow: hidden;
+}
+
+header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: linear-gradient(180deg, rgba(11, 16, 32, .95), rgba(11, 16, 32, .75));
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid rgba(255, 255, 255, .06);
+}
+
+.wrap {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 14px 16px;
+}
+
+.title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.tableTag {
+    padding: 6px 14px;
+    background: #16a085;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: 800;
+    color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, .25);
+}
+
+.cats {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 10px 2px 2px;
+    scrollbar-width: none;
+    justify-content: flex-start;
+}
+
+.cats::-webkit-scrollbar {
+    display: none;
+}
+
+.pill {
+    padding: 8px 14px;
+    background: var(--glass);
+    border: 1px solid rgba(255, 255, 255, .08);
+    border-radius: 999px;
+    color: var(--text);
+    font-weight: 600;
+    font-size: 13px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: transform .15s ease, background .15s ease, border-color .15s ease;
+    flex-shrink: 0;
+}
+
+.pill:hover {
+    transform: translateY(-1px);
+}
+
+.pill.active {
+    background: var(--brand);
+    border-color: transparent;
+}
+
+.pill:active {
+    transform: scale(0.95);
+}
+
+main {
+    padding: 16px 0 100px;
+}
+
+.grid {
+    max-width: 520px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 0 12px;
+}
+
+.card {
+    background: linear-gradient(180deg, rgba(255, 255, 255, .04), rgba(255, 255, 255, .02));
+    border: 1px solid rgba(255, 255, 255, .08);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    min-height: 190px;
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.thumb {
+    aspect-ratio: 1/1;
+    overflow: hidden;
+    background: #0a0f1e;
+    border-radius: 12px;
+}
+
+.thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    display: block;
+}
+
+.meta {
+    padding: 10px 10px 8px;
+}
+
+.name {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.25;
+    margin: 0 0 6px;
+}
+
+.price {
+    font-size: 13px;
+    color: #cbd6ff;
+    opacity: .9;
+}
+
+.act {
+    margin-top: auto;
+    padding: 8px 10px 12px;
+}
+
+.btn {
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    padding: 11px 12px;
+    font-weight: 700;
+    color: #fff;
+    cursor: pointer;
+    background: linear-gradient(180deg, var(--brand) 0%, var(--brand-2) 100%);
+    transition: transform .1s ease, filter .2s ease;
+    box-shadow: 0 6px 16px rgba(20, 145, 116, .35);
+    font-size: 14px;
+}
+
+.btn:active {
+    transform: scale(0.98) translateY(1px);
+    filter: brightness(1.1);
+}
+
+.fab {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 30;
+    background: linear-gradient(180deg, var(--accent), #1636d8);
+    color: #fff;
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 26px rgba(43, 89, 255, .45);
+    cursor: pointer;
+    border: none;
+    transition: transform 0.2s ease;
+}
+
+.fab:active {
+    transform: scale(0.9);
+}
+
+.fab .badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    background: #ff3b3b;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 800;
+    box-shadow: 0 6px 16px rgba(255, 59, 59, .45);
+}
+
+.fabTotal {
+    position: fixed;
+    right: 88px;
+    bottom: 28px;
+    font-size: 16px;
+    font-weight: 800;
+    color: #fff;
+    background: rgba(11, 16, 32, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    user-select: none;
+    z-index: 29;
+}
+
+.sheetBack {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .5);
+    display: none;
+    z-index: 38;
+}
+
+.sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: -100dvh;
+    height: 65dvh;
+    z-index: 40;
+    background: linear-gradient(180deg, rgba(17, 24, 44, .95), rgba(12, 18, 38, .98));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, .4);
+    transition: bottom .3s cubic-bezier(.2, .9, .3, 1), height .3s cubic-bezier(.2, .9, .3, 1);
+    max-width: 520px;
+    margin: 0 auto;
+    border-top: 1px solid rgba(255, 255, 255, .08);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.sheet.open {
+    bottom: 0;
+}
+
+.sheetHead {
+    padding: 12px 14px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    touch-action: none;
+    flex-shrink: 0;
+    min-height: 30px;
+    z-index: 45;
+}
+
+.sheetHead:active {
+    cursor: grabbing;
+}
+
+.grab {
+    width: 50px;
+    height: 6px;
+    background: rgba(255, 255, 255, .4);
+    border-radius: 999px;
+}
+
+.sheetInner {
+    padding: 6px 14px calc(14px + env(safe-area-inset-bottom));
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.cartList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+    padding-bottom: 10px;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    gap: 10px;
+    align-items: center;
+    padding: 8px;
+    border: 1px solid rgba(255, 255, 255, .08);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, .03);
+}
+
+.row img {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.rName {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.rSub {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.rNote {
+    font-size: 11px;
+    color: var(--brand);
+    font-style: italic;
+    margin-top: 2px;
+}
+
+.qBtns {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.qBtn {
+    background: var(--glass);
+    border: 1px solid rgba(255, 255, 255, .08);
+    color: var(--text);
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.1s ease, background 0.1s ease;
+}
+
+.qBtn:active {
+    background: var(--brand);
+    transform: scale(0.9);
+}
+
+.tot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 6px;
+    border-top: 1px dashed rgba(255, 255, 255, .1);
+}
+
+.tot span {
+    color: #cfe0ff;
+}
+
+.actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.actions .btn {
+    font-size: 16px;
+    padding: 12px;
+}
+
+.btnDanger {
+    background: linear-gradient(180deg, #ff5045, #cd2a20);
+}
+
+.btnAlt {
+    background: linear-gradient(180deg, #1f2c5c, #1b2a82);
+}
+
+.fly {
+    position: fixed;
+    z-index: 9999;
+    border-radius: 12px;
+    overflow: hidden;
+    pointer-events: none;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, .6);
+    transition:
+        left .82s cubic-bezier(.4, 0, .2, 1),
+        top .82s cubic-bezier(.1, 1.15, .3, 1),
+        width .82s ease,
+        height .82s ease,
+        border-radius .82s ease;
+}
+
+.fly img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.page {
+    max-width: 520px;
+    margin: 0 auto;
+}
+
+.payment-btn {
+    background: linear-gradient(180deg, #2b59ff, #1a3dd8);
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s ease, filter 0.1s ease;
+}
+
+.payment-btn:active {
+    transform: scale(0.98);
+    filter: brightness(1.2);
+}
+
+.status-tag {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-weight: 700;
+    margin-left: 8px;
+    flex-shrink: 0;
+}
+
+.status-Received {
+    background: #eab308;
+    color: #000;
+}
+
+.status-Ready {
+    background: #10b981;
+    color: #000;
+}
+
+.status-Delivered {
+    background: #334155;
+    color: #e2e8f0;
+}
+
+.tab {
+    padding: 6px 14px;
+    background: rgba(255, 255, 255, .05);
+    border-radius: 10px;
+    color: #cfe0ff;
+    border: 1px solid rgba(255, 255, 255, .1);
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.tab.active {
+    background: #2b59ff;
+    color: #fff;
+}
+
+.thumb.clickable {
+    cursor: pointer;
+}
+
+.modal-base {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .3);
+    display: none;
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background: var(--panel);
+    padding: 18px;
+    border-radius: 14px;
+    width: 86%;
+    max-width: 380px;
+    border: 1px solid rgba(255, 255, 255, .1);
+    box-shadow: var(--shadow);
+}
+
+.modal-content-info {
+    padding: 0;
+    overflow: hidden;
+}
+
+.modal-info-img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.modal-info-body {
+    padding: 12px 16px 16px;
+}
+
+.modal-info-body h3 {
+    margin: 0 0 8px;
+    color: var(--brand);
+}
+
+.modal-info-body p {
+    margin: 0 0 16px;
+    font-size: 14px;
+    color: var(--muted);
+}
+
+.modal-info-body button {
+    width: 100%;
+    padding: 9px;
+    background: var(--bg);
+    border: 1px solid var(--glass);
+    color: var(--text);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.1s ease;
+}
+
+.modal-info-body button:active {
+    background: var(--brand);
+}
+
+.search-wrap {
+    padding: 8px 4px 0;
+}
+
+#searchInput {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--glass);
+    background: rgba(0, 0, 0, .2);
+    color: var(--text);
+    font-size: 14px;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+#searchInput::placeholder {
+    color: var(--muted);
+}
+
+#searchInput:focus {
+    outline: none;
+    border-color: var(--brand);
+}
+
+#orderNoteArea {
+    width: 100%;
+    height: 50px;
+    border-radius: 8px;
+    background: var(--bg);
+    border: 1px solid var(--glass);
+    color: var(--text);
+    padding: 8px;
+    font-family: inherit;
+    resize: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+#orderNoteArea:focus {
+    outline: none;
+    border-color: var(--brand);
+}
+
+.stepper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 12px 0;
+}
+
+.stepper-btn {
+    background: var(--glass);
+    border: 1px solid rgba(255, 255, 255, .1);
+    color: var(--text);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s ease, background 0.1s ease;
+}
+
+.stepper-btn:active {
+    background: var(--brand);
+    transform: scale(0.9);
+}
+
+.stepper-val {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+    min-width: 40px;
+    text-align: center;
+}
+
+.modal-content button {
+    cursor: pointer;
+}
+
+.modal-content .back-btn {
+    width: auto;
+    margin-top: 0 !important;
+    padding: 11px;
+    font-size: 15px;
+    background: var(--panel);
+    border: 1px solid var(--glass);
+    color: var(--text);
+    border-radius: 10px;
+    transition: background 0.1s ease;
+}
+
+.modal-content .back-btn:active {
+    background: var(--danger);
+}
+
+.modal-actions button {
+    flex: 1;
+    margin-top: 0 !important;
+    padding: 11px !important;
+    font-size: 15px !important;
+}
+
+.option-group {
+    margin-bottom: 12px;
+}
+
+.option-group label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 8px;
+}
+
+.option-choice {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.option-choice span {
+    font-size: 14px;
+    color: var(--text);
+}
+
+.option-price {
+    font-size: 12px;
+    color: var(--muted);
+    margin-left: 4px;
+}
+
+.item-selection-list {
+    max-height: 280px;
+    overflow-y: auto;
+    padding-right: 8px;
+    margin-bottom: 15px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--brand) transparent;
+}
+
+.item-selection-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.item-selection-list::-webkit-scrollbar-thumb {
+    background-color: var(--brand);
+    border-radius: 10px;
+}
+
+.item-selection-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.item-note-input {
+    width: 100%;
+    margin-top: 6px;
+    padding: 6px 8px;
+    font-size: 11px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--glass);
+    color: var(--text);
+    outline: none;
+}
+
+.item-note-input:focus {
+    border-color: var(--brand);
+}
+
+.split-total-box {
+    margin: 0 0 14px;
+    padding: 12px 14px;
+    border: 1px solid rgba(255, 255, 255, .1);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, .04);
+    text-align: center;
+    font-size: 16px;
+    font-weight: 800;
+    color: #fff;
+}
+
+.split-preview {
+    margin: 12px 0 14px;
+    padding: 12px 14px;
+    border: 1px solid rgba(255, 255, 255, .1);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, .04);
+}
+
+.split-preview-title {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.split-preview-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 0;
+    border-top: 1px solid rgba(255, 255, 255, .06);
+}
+
+.split-preview-row:first-of-type {
+    border-top: none;
+}
+
+.split-preview-row strong {
+    font-size: 15px;
+}
+
+.split-people-stepper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    margin: 14px 0 18px;
+}
+
+.split-people-stepper .stepper-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.split-people-stepper .stepper-val {
+    min-width: 44px;
+    text-align: center;
+    line-height: 1;
+}
+
+.modal-bottom-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.payment-select-big {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--glass);
+    font-size: 17px;
+    min-height: 52px;
+    margin-top: 10px;
+}
+
+.item-selection-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    margin: 8px 0;
+    padding: 10px 8px;
+}
+
+.item-name-area {
+    min-width: 0;
+}
+
+.item-name-area .item-name {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.item-name-area .item-detail {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+}
+
+.item-selection-row .stepper {
+    margin: 0;
+    gap: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.item-selection-row .stepper-btn {
+    width: 38px;
+    height: 38px;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.item-selection-row .stepper-val {
+    min-width: 28px;
+    text-align: center;
+    line-height: 1;
+}
+
+#toast {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 18px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .25s ease;
+    white-space: nowrap;
+}
+input, textarea, select {
+    font-size: 16px !important;
+}
+#toast.show { opacity: 1; }
+#toast.t-success { background: #10b981; }
+#toast.t-error   { background: #e74c3c; }
+#toast.t-warning { background: #f59e0b; color: #1a1a1a; }
+#toast.t-info    { background: #0ea5e9; }
+</style>
+</head>
+<body>
+<div id="toast"></div>
+<header>
+    <div class="wrap">
+        <div class="title">
+            <div class="tableTag">Table <span id="tableNoText">1</span></div>
+            <button id="btnCallWaiter" class="btn" style="background: var(--danger); width: auto; padding: 8px 14px; box-shadow: none; flex-shrink: 0;">
+                🛎️ Call Waiter
+            </button>
+        </div>
+        <div class="search-wrap">
+            <input type="search" id="searchInput" placeholder="Search product...">
+        </div>
+        <div id="catBar" class="cats">
+            <button class="pill active" data-category="Popular">🔥 Most Preferred</button>
+            <button class="pill" data-category="Food">🍔 Food</button>
+            <button class="pill" data-category="Drinks">🥤 Drinks</button>
+        </div>
+        <div id="subCatBar" class="cats" style="display:none"></div>
+    </div>
+</header>
+<main class="page" id="mainPage"> 
+    <section id="grid" class="grid"></section>
+</main>
+<div class="fabTotal" id="fabTotal">0.00₺</div>
+<button id="fabCart" class="fab">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+        <path d="M6 6h15l-1.5 9H8L6 6Z" stroke="white" stroke-width="1.6"/>
+        <circle cx="9.5" cy="20" r="1.6" fill="#fff"/><circle cx="17.5" cy="20" r="1.6" fill="#fff"/>
+    </svg>
+    <div id="fabBadge" class="badge">0</div>
+</button>
+<div id="sheetBack" class="sheetBack"></div>
+<div id="cartSheet" class="sheet">
+    <div class="sheetHead"><div class="grab"></div></div>
+    <div class="sheetInner">
+        <div style="display:flex; gap:8px; margin:6px 0; justify-content:center">
+            <button id="tabCart" class="tab active">My Cart</button>
+            <button id="tabOrders" class="tab">My Orders</button>
+        </div>
+        <ul id="cartList" class="cartList"></ul>
+        <div id="oldOrders" style="flex:1; overflow:auto; display:none"></div>
+        <div style="padding-top: 8px;">
+            <textarea id="orderNoteArea" placeholder="General note for the entire order..."></textarea>
+        </div>
+        <div class="tot">
+            <span>Total</span>
+            <button id="clearCartBtn" style="
+                background:none;
+                border:none;
+                cursor:pointer;
+                margin-right:10px;
+                opacity:.8;
+            ">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <path d="M3 6h18" stroke="#ff3b3b" stroke-width="1.6" stroke-linecap="round"/>
+                    <path d="M8 6V4h8v2" stroke="#ff3b3b" stroke-width="1.6" stroke-linecap="round"/>
+                    <path d="M10 11v6" stroke="#ff3b3b" stroke-width="1.6" stroke-linecap="round"/>
+                    <path d="M14 11v6" stroke="#ff3b3b" stroke-width="1.6" stroke-linecap="round"/>
+                    <path d="M5 6l1 14h12l1-14" stroke="#ff3b3b" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>
+            </button>
+            <strong id="grand">0.00₺</strong>
+        </div>
+        <div class="actions">
+            <button id="askBill" class="btn btnAlt">Request Bill</button>
+            <button id="sendOrder" class="btn">Send Order</button>
+        </div>
+    </div>
+</div>
+
+<div id="paymentModal" class="modal-base">
+    <div class="modal-content">
+        <div id="modalContentArea">
+        </div>
+    </div>
+</div>
+
+<div id="infoModal" class="modal-base">
+    <div class="modal-content modal-content-info">
+        <div id="infoModalContentArea">
+        </div>
+    </div>
+</div>
+
+<div id="optionsModal" class="modal-base">
+    <div class="modal-content">
+        <form id="optionsForm">
+            <div id="optionsModalContentArea">
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// --- state ---
+const qs = s => document.querySelector(s);
+const qsa = s => [...document.querySelectorAll(s)];
+
+let paymentPending = false;
+
+const p = new URLSearchParams(location.search);
+const tableNo = Number(p.get('table')) || Number(p.get('tableNo')) || 1;
+qs('#tableNoText').textContent = tableNo;
+
+const CART_STORAGE_KEY = `table_${tableNo}_cart`; 
+
+let allProducts = [];
+let cart = [];
+let dbTotal = 0;
+let mainCategories = [];
+
+const grid = qs('#grid');
+const fab = qs('#fabCart');
+const fabBadge = qs('#fabBadge');
+const fabTotal = qs('#fabTotal');
+const sheet = qs('#cartSheet');
+const sheetBack = qs('#sheetBack');
+const cartList = qs('#cartList');
+const grand = qs('#grand');
+const paymentModal = qs('#paymentModal');
+const modalContentArea = qs('#modalContentArea');
+const infoModal = qs('#infoModal');
+const infoModalContentArea = qs('#infoModalContentArea');
+const optionsModal = qs('#optionsModal');
+const optionsForm = qs('#optionsForm');
+const subBar = qs('#subCatBar');
+const searchInput = qs('#searchInput');
+const catBar = qs('#catBar');
+
+let totalPersons = 0; 
+let currentPersonIndex = 1; 
+let selectedProductsForSplit = [];
+let allOrders = [];
+
+// --- helpers ---
+function formatMoney(v) {
+    return Number(v || 0).toFixed(2) + '₺';
+}
+
+function buildPersonPreview(count) {
+    const perPerson = count > 0 ? dbTotal / count : 0;
+    let html = `<div class="split-preview">
+        <div class="split-preview-title">Current split preview</div>`;
+    for (let i = 1; i <= count; i++) {
+        html += `
+            <div class="split-preview-row">
+                <span>Person ${i}</span>
+                <strong>${formatMoney(perPerson)}</strong>
+            </div>
+        `;
+    }
+    html += `</div>`;
+    return html;
+}
+
+function groupOrdersForSplit(orderList) {
+    const grouped = new Map();
+
+    orderList.forEach(order => {
+        const productName = (order.productId && order.productId.name) || 'Product';
+        const itemPrice = Number(order.price || (order.productId ? order.productId.price : 0) || 0);
+        const note = order.note || '';
+        const key = `${order.productId?._id || 'deleted'}__${itemPrice}__${note}`;
+
+        if (!grouped.has(key)) {
+            grouped.set(key, {
+                key,
+                productId: order.productId?._id || null,
+                name: productName,
+                price: itemPrice,
+                note,
+                quantity: 0,
+                sourceOrderIds: []
+            });
+        }
+
+        const group = grouped.get(key);
+        group.quantity += Number(order.quantity || 1);
+        for (let i = 0; i < Number(order.quantity || 1); i++) {
+            group.sourceOrderIds.push(order._id);
+        }
+    });
+
+    return Array.from(grouped.values());
+}
+
+function scrollToGrid() {
+    const headerHeight = qs('header').offsetHeight;
+    window.scrollTo({
+        top: qs('#mainPage').offsetTop - headerHeight,
+        behavior: 'smooth'
+    });
+}
+
+// --- modals ---
+function openOptionsModal(u) {
+    let html = `<h3>${u.name}</h3>`;
+    let currentPrice = u.price;
+    
+    u.options.forEach((group, groupIndex) => {
+        html += `<div class="option-group">
+                   <label>${group.title}</label>`;
+        const inputType = group.type === 'multiple' ? 'checkbox' : 'radio';
+        group.choices.forEach((choice, choiceIndex) => {
+            const inputId = `g-${groupIndex}-s-${choiceIndex}`;
+            const extraPriceText = choice.extraPrice > 0 ? ` (+${choice.extraPrice}₺)` : "";
+            html += `<div class="option-choice">
+                       <input type="${inputType}" 
+                              id="${inputId}" 
+                              name="group-${groupIndex}" 
+                              value="${choice.name}" 
+                              data-extraprice="${choice.extraPrice}"
+                              ${inputType === 'radio' && choiceIndex === 0 ? 'checked' : ''}>
+                       <label for="${inputId}" style="margin:0; flex:1;">
+                         <span>${choice.name}</span>
+                         <span class="option-price">${extraPriceText}</span>
+                       </label>
+                     </div>`;
+        });
+        html += `</div>`;
+    });
+    
+    html += `<div class="modal-actions">
+               <button type="button" class="back-btn" onclick="window.closeModal('options')">Cancel</button>
+               <button type="submit" class="btn" id="optionsBtn">
+                 Add to Cart (<span id="optionsPrice">${currentPrice.toFixed(2)}</span>₺)
+               </button>
+             </div>`;
+             
+    optionsForm.innerHTML = html;
+    optionsForm.dataset.productId = u._id;
+    qs('body').classList.add('modal-open');
+    optionsModal.style.display = 'flex';
+    
+    const priceSpan = qs('#optionsPrice');
+    optionsForm.onchange = () => {
+        let updatedPrice = u.price;
+        const selectedInputs = qsa('#optionsForm input:checked');
+        selectedInputs.forEach(input => {
+            updatedPrice += Number(input.dataset.extraprice);
+        });
+        priceSpan.textContent = updatedPrice.toFixed(2);
+    };
+    optionsForm.onchange(); 
+}
+
+function showInfoModal(u) {
+    const hasInfo = u.description && u.description.trim() !== '';
+    const descriptionHtml = hasInfo ? `<p>${u.description}</p>` : '';
+    infoModalContentArea.innerHTML = `
+        <img src="${u.photo}" class="modal-info-img">
+        <div class="modal-info-body">
+            <h3>${u.name}</h3>
+            ${descriptionHtml}
+            <button onclick="window.closeModal('info')">Close</button>
+        </div>
+    `;
+    qs('body').classList.add('modal-open');
+    infoModal.style.display = 'flex';
+}
+
+window.closeModal = (modalName) => {
+    qs('body').classList.remove('modal-open');
+    if (modalName === 'info') {
+        infoModal.style.display = 'none';
+    } else if (modalName === 'options') {
+        optionsModal.style.display = 'none';
+    } else {
+        paymentModal.style.display = 'none';
+    }
+};
+
+// --- render ---
+function showSubCategories(mainCat) {
+    const subCategories = [...new Set(allProducts
+        .filter(u => (u.mainCategory || '').toLowerCase() === mainCat.toLowerCase())
+        .map(u => u.category)
+        .filter(Boolean)
+    )];
+    if (subCategories.length === 0) {
+        subBar.style.display = 'none';
+        renderOnlyMainCategory(mainCat);
+        return;
+    }
+    subBar.innerHTML = subCategories.map(a =>
+        `<button class="pill" data-sub="${a}">${a}</button>`
+    ).join('');
+    subBar.style.display = 'flex';
+
+    subBar.querySelectorAll('button').forEach(btn => {
+        btn.onclick = () => {
+            scrollToGrid();
+            searchInput.value = "";
+            subBar.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+            btn.classList.add('active');
+            renderSubCategory(mainCat, btn.dataset.sub);
+        };
+    });
+    const first = subBar.querySelector('button');
+    if (first) {
+        first.classList.add('active');
+        renderSubCategory(mainCat, first.dataset.sub);
+    }
+}
+
+function renderOnlyMainCategory(mainCat) {
+    grid.innerHTML = '';
+    allProducts.filter(u => (u.mainCategory || '').toLowerCase() === mainCat.toLowerCase())
+        .forEach(renderProductCard);
+}
+
+function renderSubCategory(mainCat, subCat) {
+    grid.innerHTML = '';
+    const uk = mainCat.toLowerCase(), ak = subCat.toLowerCase();
+    allProducts.filter(u => (u.mainCategory || '').toLowerCase() === uk && (u.category || '').toLowerCase() === ak)
+        .forEach(renderProductCard);
+}
+
+function renderProductCard(u) {
+    const el = document.createElement('div');
+    el.className = 'card';
+    const hasOptions = u.options && u.options.length > 0;
+    el.innerHTML = `
+        <div class="thumb clickable" data-id="${u._id}"> 
+            <img src="${u.photo}">
+        </div>
+        <div class="meta">
+            <p class="name">${u.name}</p>
+            <div class="price">${(u.price || 0).toFixed(2)}₺</div>
+        </div>
+        <div class="act"><button class="btn">Add to Cart</button></div>
+    `;
+    const addToCartBtn = el.querySelector('.btn');
+    if (hasOptions) {
+        addToCartBtn.onclick = () => openOptionsModal(u);
+    } else {
+        addToCartBtn.onclick = () => {
+            addToCart(u, u.price, "");
+            fly(el.querySelector('.thumb img'));
+        };
+    }
+    el.querySelector('.thumb').onclick = () => showInfoModal(u);
+    grid.appendChild(el);
+}
+
+function renderGrid(cat) {
+    if (!cat || cat === 'Popular') {
+        subBar.style.display = 'none';
+    }
+    grid.innerHTML = '';
+    if (cat === 'Popular') {
+        allProducts
+            .filter(u => (u.price || 0) >= 250)
+            .sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0))
+            .slice(0, 10)
+            .forEach(renderProductCard);
+        return;
+    }
+    if (mainCategories.map(x => x.toLowerCase()).includes(cat.toLowerCase())) {
+        showSubCategories(cat);
+        return;
+    }
+    allProducts.filter(u =>
+        (u.category || '').toLowerCase() === cat.toLowerCase() ||
+        (u.mainCategory || '').toLowerCase() === cat.toLowerCase()
+    ).forEach(renderProductCard);
+}
+
+function renderSearchResults(query) {
+    grid.innerHTML = '';
+    const filtered = allProducts.filter(u => u.name.toLowerCase().includes(query));
+    if (filtered.length === 0) {
+        grid.innerHTML = `<p style="color:var(--muted); padding-left: 12px;">No products match '${query}'.</p>`;
+    } else {
+        filtered.forEach(renderProductCard);
+    }
+    qsa('#catBar .pill').forEach(x => x.classList.remove('active'));
+    subBar.style.display = 'none';
+}
+
+// --- cart ---
+function addToCart(u, price, note) {
+    const cartLineId = `L-${u._id}-${note.replace(/\s/g, '_')}`;
+    const existing = cart.find(i => i.cartLineId === cartLineId);
+    if (existing) {
+        existing.quantity++;
+    } else {
+        cart.push({ ...u, quantity: 1, currentPrice: price, note: note, cartLineId: cartLineId, userNote: "" });
+    }
+    syncUI();
+}
+
+function changeQty(cartLineId, delta) {
+    const item = cart.find(x => x.cartLineId === cartLineId);
+    if (!item) return;
+    item.quantity += delta;
+    if (item.quantity <= 0) cart = cart.filter(x => x.cartLineId !== cartLineId);
+    syncUI();
+}
+
+function getTotals() {
+    const local = cart.reduce((a, b) => a + (b.currentPrice || 0) * b.quantity, 0);
+    const total = local + dbTotal;
+    return { local, total };
+}
+
+function syncUI() {
+    fabBadge.textContent = cart.reduce((a, b) => a + b.quantity, 0);
+    const { total } = getTotals();
+    fabTotal.textContent = total.toFixed(2) + '₺';
+    grand.textContent = total.toFixed(2) + '₺';
+    cartList.innerHTML = '';
+    cart.forEach(u => {
+        const li = document.createElement('li');
+        li.className = 'row';
+        const noteHtml = u.note ? `<div class="rNote">Note: ${u.note}</div>` : '';
+        li.innerHTML = `<img src="${u.photo}">
+            <div style="flex:1">
+                <div class="rName">${u.name}</div>
+                <div class="rSub">${(u.currentPrice || 0).toFixed(2)}₺ × ${u.quantity}</div>
+                ${noteHtml}
+                <input type="text" class="item-note-input" placeholder="Add note for this item..."
+                       value="${u.userNote || ''}"
+                       oninput="window.updateItemNote('${u.cartLineId}', this.value)">
+            </div>
+            <div class="qBtns">
+                <button class="qBtn" data-id="${u.cartLineId}" data-op="-1">−</button>
+                <button class="qBtn" data-id="${u.cartLineId}" data-op="1">+</button>
+            </div>`;
+        cartList.appendChild(li);
+    });
+
+    try {
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+    } catch (e) {
+        console.warn("Could not save cart to Local Storage:", e);
+    }
+}
+
+window.updateItemNote = (cartLineId, val) => {
+    const item = cart.find(x => x.cartLineId === cartLineId);
+    if (item) {
+        item.userNote = val;
+        try {
+            localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+        } catch (e) {}
+    }
+};
+
+function fly(img) {
+    const r = img.getBoundingClientRect(), f = fab.getBoundingClientRect();
+    const SIZE = 72;
+    const destLeft = f.left + f.width / 2 - SIZE / 2;
+    const destTop  = f.top  + f.height / 2 - SIZE / 2;
+
+    const flyEl = document.createElement('div');
+    flyEl.className = 'fly';
+    flyEl.style.cssText = `left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;opacity:1;`;
+    const clone = img.cloneNode(true);
+    clone.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+    flyEl.appendChild(clone);
+    document.body.appendChild(flyEl);
+
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+        flyEl.style.left   = destLeft + 'px';
+        flyEl.style.top    = destTop  + 'px';
+        flyEl.style.width  = SIZE + 'px';
+        flyEl.style.height = SIZE + 'px';
+        flyEl.style.borderRadius = '50%';
+    }));
+
+    setTimeout(() => {
+        flyEl.style.transition = 'transform .18s ease-in, opacity .18s ease-in';
+        flyEl.style.transform = 'scale(1.25)';
+        flyEl.style.opacity = '0';
+        setTimeout(() => flyEl.remove(), 200);
+    }, 850);
+}
+
+function openSheet() {
+    qs("#tabCart").click();
+    qs('body').classList.add('modal-open');
+    sheetBack.style.display = 'block';
+    sheet.style.height = '65dvh';
+    requestAnimationFrame(() => sheet.classList.add('open'));
+}
+
+function closeSheet() {
+    qs('body').classList.remove('modal-open');
+    sheet.classList.remove('open');
+    setTimeout(() => {
+        sheetBack.style.display = 'none';
+        sheet.style.height = '65dvh';
+    }, 260);
+}
+
+const sheetHeadEl = qs('.sheetHead');
+let startY = 0;
+let startHeight = 0;
+let isDraggingSheet = false;
+
+sheetHeadEl.addEventListener('touchstart', e => {
+    startY = e.touches[0].clientY;
+    startHeight = sheet.getBoundingClientRect().height;
+    isDraggingSheet = true;
+    sheet.style.transition = 'none';
+}, { passive: true });
+
+sheetHeadEl.addEventListener('touchmove', e => {
+    if (!isDraggingSheet) return;
+    const currentY = e.touches[0].clientY;
+    const diff = startY - currentY;
+    const minH = window.innerHeight * 0.65;
+    const maxH = window.innerHeight * 0.92;
+    let nextHeight = startHeight + diff;
+
+    if (nextHeight < minH) nextHeight = minH;
+    if (nextHeight > maxH) nextHeight = maxH;
+
+    sheet.style.height = nextHeight + 'px';
+}, { passive: true });
+
+sheetHeadEl.addEventListener('touchend', () => {
+    if (!isDraggingSheet) return;
+    isDraggingSheet = false;
+    sheet.style.transition = 'bottom .3s cubic-bezier(.2,.9,.3,1), height .3s cubic-bezier(.2,.9,.3,1)';
+
+    const finalHeight = sheet.getBoundingClientRect().height;
+    const halfPoint = window.innerHeight * 0.78;
+
+    if (finalHeight >= halfPoint) {
+        sheet.style.height = '92dvh';
+    } else {
+        sheet.style.height = '65dvh';
+    }
+});
+
+sheetHeadEl.addEventListener('dblclick', () => {
+    const currentHeight = sheet.getBoundingClientRect().height;
+    if (currentHeight > window.innerHeight * 0.78) {
+        sheet.style.height = '65dvh';
+    } else {
+        sheet.style.height = '92dvh';
+    }
+});
+// --- payment ---
+window.cardCashPayment = async type => {
+    try {
+        const response = await fetch('/api/request-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tableNo: tableNo, paymentType: type })
+        });
+        if (response.ok) {
+            window.closeModal();
+            showToast(`${type === 'Card' ? '💳' : '💵'} Payment request for ${type} sent`, 't-success');
+            updateBillButton(true);
+        } else {
+            showToast('An error occurred while sending the payment request.', 't-error');
+        }
+    } catch (error) {
+        showToast('Communication error: Could not send payment request.', 't-error');
+    }
+};
+
+window.selectSplitMethod = () => {
+    if (dbTotal <= 0) {
+        showToast('There is no active order to pay for.', 't-warning');
+        return;
+    }
+    modalContentArea.innerHTML = `
+        <h3>Split Method</h3>
+        <div class="split-total-box">Total: ${formatMoney(dbTotal)}</div>
+        <button class="payment-btn" id="modalBtnSplitPerson">👥 Split Equally by Person</button>
+        <button class="payment-btn" id="modalBtnSplitProduct" style="margin-top:8px;">🍽️ Split by Item</button>
+        <button class="back-btn" id="modalBtnBack" style="margin-top:8px;">Back</button>`;
+
+    qs('#modalBtnSplitPerson').onclick = window.splitByPerson_Step1;
+    qs('#modalBtnSplitProduct').onclick = window.splitByProduct_Step1;
+    qs('#modalBtnBack').onclick = () => qs('#askBill').click();
+};
+
+window.splitByPerson_Step1 = () => {
+    let currentCount = 2;
+
+    const renderStep1 = () => {
+        modalContentArea.innerHTML = `
+            <h3>How Many People?</h3>
+            <div class="split-total-box">Total: ${formatMoney(dbTotal)}</div>
+            <div class="split-people-stepper">
+                <button type="button" class="stepper-btn" id="personMinus">−</button>
+                <span class="stepper-val" id="personCountVal">${currentCount}</span>
+                <button type="button" class="stepper-btn" id="personPlus">+</button>
+            </div>
+            ${buildPersonPreview(currentCount)}
+            <div class="modal-bottom-actions">
+                <button class="payment-btn" id="modalBtnContinue">Continue</button>
+                <button class="back-btn" id="modalBtnBack">Back</button>
+            </div>
+        `;
+
+        qs('#modalBtnContinue').onclick = window.splitByPerson_Step2;
+        qs('#modalBtnBack').onclick = window.selectSplitMethod;
+
+        qs('#personMinus').onclick = () => {
+            currentCount--;
+            if (currentCount < 2) currentCount = 2;
+            renderStep1();
+        };
+
+        qs('#personPlus').onclick = () => {
+            currentCount++;
+            if (currentCount > 10) currentCount = 10;
+            renderStep1();
+        };
+    };
+
+    renderStep1();
+};
+
+window.splitByPerson_Step2 = () => {
+    const pCount = Number(qs('#personCountVal').textContent);
+    const costPerPerson = (dbTotal / pCount).toFixed(2);
+    let html = `<h3>${pCount} People - Payment</h3>`;
+    html += `<div class="split-total-box">Total: ${formatMoney(dbTotal)}</div>`;
+
+    for (let i = 1; i <= pCount; i++) {
+        html += `
+            <div style="margin:8px 0">
+                <b>Person ${i} (${costPerPerson}₺):</b>
+                <select id="payment${i}" class="payment-select-big">
+                    <option value="Card">Card</option>
+                    <option value="Cash">Cash</option>
+                </select>
+            </div>`;
+    }
+
+    html += `
+        <div class="modal-bottom-actions">
+            <button class="payment-btn" id="modalBtnSend">Send</button>
+            <button class="back-btn" id="modalBtnBack">Back</button>
+        </div>
+    `;
+
+    modalContentArea.innerHTML = html;
+
+    qs('#modalBtnSend').onclick = () => window.sendPersonSplit(pCount);
+    qs('#modalBtnBack').onclick = window.splitByPerson_Step1;
+};
+
+window.sendPersonSplit = async pCount => {
+    const methods = [];
+    for (let i = 1; i <= pCount; i++) methods.push(document.getElementById('payment' + i).value);
+    await fetch('/api/request-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tableNo: tableNo, splitType: 'person', personCount: pCount, paymentMethods: methods })
+    });
+    window.closeModal();
+    showToast('👥 Split payment request sent!', 't-success');
+};
+
+window.splitByProduct_Step1 = () => {
+    let currentCount = 2;
+
+    const renderProductStep1 = () => {
+        modalContentArea.innerHTML = `
+            <h3>How Many People Are Paying?</h3>
+            <div class="split-total-box">Total: ${formatMoney(dbTotal)}</div>
+            <div class="split-people-stepper">
+                <button type="button" class="stepper-btn" id="productMinus">−</button>
+                <span class="stepper-val" id="productPersonCountVal">${currentCount}</span>
+                <button type="button" class="stepper-btn" id="productPlus">+</button>
+            </div>
+            <div class="modal-bottom-actions">
+                <button class="payment-btn" id="modalBtnContinue">Continue</button>
+                <button class="back-btn" id="modalBtnBack">Back</button>
+            </div>
+        `;
+
+        qs('#modalBtnContinue').onclick = window.startProductSplit;
+        qs('#modalBtnBack').onclick = window.selectSplitMethod;
+
+        qs('#productMinus').onclick = () => {
+            currentCount--;
+            if (currentCount < 2) currentCount = 2;
+            renderProductStep1();
+        };
+
+        qs('#productPlus').onclick = () => {
+            currentCount++;
+            if (currentCount > 10) currentCount = 10;
+            renderProductStep1();
+        };
+    };
+
+    renderProductStep1();
+};
+
+window.startProductSplit = async () => {
+    totalPersons = Number(qs('#productPersonCountVal').textContent);
+    currentPersonIndex = 1;
+    selectedProductsForSplit = [];
+    try {
+        const r = await fetch('/api/orders?tableNo=' + tableNo);
+        const t = await r.json();
+        const rawOrders = t.filter(x => x.tableNo === tableNo && !x.isPaid).map(x => ({ ...x }));
+        allOrders = groupOrdersForSplit(rawOrders);
+        window.productSelectionScreen();
+    } catch (e) {
+        showToast("An error occurred while loading orders.", "t-error");
+    }
+};
+
+window.productSelectionScreen = () => {
+    const currentOrder = currentPersonIndex;
+    const activeOrdersCopy = allOrders.filter(s => Number(s.quantity || 0) > 0);
+    let h = `<h3>Person ${currentOrder} Selection</h3>`;
+    h += `<div class="split-total-box">Table Total: ${formatMoney(dbTotal)}</div>`;
+    h += `<div class="item-selection-list">`;
+
+    activeOrdersCopy.forEach((s, i) => {
+        const leftCount = Number(s.quantity) || 1;
+        const itemPrice = Number(s.price || 0);
+
+        h += `
+            <div class="item-selection-row" data-price="${itemPrice}">
+                <div class="item-name-area">
+                    <div class="item-name">${s.name} (${formatMoney(itemPrice)})</div>
+                    <div class="item-detail">
+                        <span id="leftCount${i}">Left: ${leftCount}</span>
+                    </div>
+                </div>
+                <div class="stepper">
+                    <button type="button" class="stepper-btn" data-op="-1" data-index="${i}" data-max="${leftCount}">−</button>
+                    <span class="stepper-val" id="qty${i}Val">0</span>
+                    <button type="button" class="stepper-btn" data-op="1" data-index="${i}" data-max="${leftCount}">+</button>
+                </div>
+            </div>
+        `;
+    });
+
+    h += `</div>`;
+    h += `<div id="personSelectionTotal" style="font-size:16px;font-weight:bold;margin-top:15px;padding-top:10px;border-top:1px dashed var(--glass);text-align:right;">Person Total: 0.00₺</div>`;
+    h += `
+        <select id="paymentType" class="payment-select-big">
+            <option value="Card">Card</option>
+            <option value="Cash">Cash</option>
+        </select>
+        <div class="modal-bottom-actions">
+            <button type="button" class="payment-btn" id="modalBtnPersonDone">Save</button>
+            <button type="button" class="back-btn" id="modalBtnBack">Back</button>
+        </div>
+    `;
+
+    modalContentArea.innerHTML = h;
+
+    qs('#modalBtnPersonDone').onclick = window.productPersonDone;
+    qs('#modalBtnBack').onclick = window.splitByProduct_Step1;
+
+    modalContentArea.querySelectorAll('.stepper-btn').forEach(btn => {
+        btn.onclick = () => {
+            const idx = btn.dataset.index;
+            const max = Number(btn.dataset.max);
+            const valEl = document.getElementById(`qty${idx}Val`);
+            let val = Number(valEl.textContent) + Number(btn.dataset.op);
+
+            if (val < 0) val = 0;
+            if (val > max) val = max;
+
+            valEl.textContent = val;
+
+            const leftEl = document.getElementById(`leftCount${idx}`);
+            if (leftEl) {
+                leftEl.textContent = `Left: ${max - val}`;
+            }
+
+            window.updatePersonTotal();
+        };
+    });
+};
+
+window.updatePersonTotal = () => {
+    let currentPersonTotal = 0;
+    const allSelections = document.querySelectorAll('.item-selection-row');
+    allSelections.forEach((row) => {
+        const valEl = row.querySelector('.stepper-val');
+        if (valEl) {
+            const qty = Number(valEl.textContent);
+            const prc = Number(row.dataset.price);
+            currentPersonTotal += (qty * prc);
+        }
+    });
+    const totalEl = document.querySelector('#personSelectionTotal');
+    if (totalEl) {
+        totalEl.textContent = `Person Total: ${formatMoney(currentPersonTotal)}`;
+    }
+};
+
+window.productPersonDone = () => {
+    const activeOrders = allOrders.filter(s => Number(s.quantity || 0) > 0);
+    const selectedIds = [];
+    let madeSelection = false;
+
+    activeOrders.forEach((s, i) => {
+        const valEl = document.getElementById('qty' + i + 'Val');
+        const qtySelected = valEl ? Number(valEl.textContent) : 0;
+
+        if (qtySelected > 0) {
+            madeSelection = true;
+
+            const pickedIds = (s.sourceOrderIds || []).slice(0, qtySelected);
+            selectedIds.push(...pickedIds);
+
+            const originalGroup = allOrders.find(x => x.key === s.key);
+            if (originalGroup) {
+                originalGroup.quantity = Number(originalGroup.quantity || 0) - qtySelected;
+                originalGroup.sourceOrderIds = (originalGroup.sourceOrderIds || []).slice(qtySelected);
+            }
+        }
+    });
+
+    const payType = document.getElementById('paymentType').value;
+
+    if (selectedIds.length > 0) {
+        selectedProductsForSplit.push({
+            personIndex: currentPersonIndex,
+            products: selectedIds,
+            paymentType: payType
+        });
+    }
+
+    allOrders = allOrders.filter(s => Number(s.quantity || 0) > 0);
+
+    if (currentPersonIndex < totalPersons) {
+        currentPersonIndex++;
+        window.productSelectionScreen();
+    } else {
+        if (!madeSelection && selectedProductsForSplit.length === 0) {
+            showToast("No items were selected!", "t-warning"); return;
+        }
+
+        const hasLeftover = allOrders.some(s => Number(s.quantity || 0) > 0);
+        if (hasLeftover) {
+            showToast("Please distribute all items!", "t-warning"); return;
+        }
+
+        fetch('/api/request-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                tableNo: tableNo,
+                splitType: 'product',
+                persons: selectedProductsForSplit,
+                personCount: totalPersons
+            })
+        })
+        .then(() => {
+            window.closeModal();
+            showToast('🍽️ Item-based payment request sent!', 't-success');
+        })
+        .catch(() => showToast('An error occurred while sending the payment request.', 't-error'));
+    }
+};
+
+// --- data ---
+function loadCartFromStorage() {
+    try {
+        const storedCart = localStorage.getItem(CART_STORAGE_KEY);
+        if (storedCart) {
+            const parsedCart = JSON.parse(storedCart);
+            if (Array.isArray(parsedCart) && parsedCart.length > 0) {
+                cart = parsedCart;
+            } else {
+                cart = [];
+            }
+        } else {
+            cart = [];
+        }
+    } catch (e) {
+        console.error("Error loading cart from Local Storage:", e);
+        cart = [];
+    }
+}
+
+async function refreshRemoteTotal() {
+    try {
+        const [ordersRes, tablesRes] = await Promise.all([
+            fetch('/api/orders?tableNo=' + tableNo),
+            fetch('/api/tables')
+        ]);
+        const s = await ordersRes.json();
+        const tables = await tablesRes.json();
+
+        dbTotal = s.filter(x => !x.isPaid).reduce((acc, b) => acc + (b.price || (b.productId ? b.productId.price : 0)) * (b.quantity || 1), 0);
+
+        const local = cart.reduce((a, b) => a + (b.currentPrice || 0) * b.quantity, 0);
+        const combinedTotal = local + dbTotal;
+        fabTotal.textContent = combinedTotal.toFixed(2) + '₺';
+        grand.textContent = combinedTotal.toFixed(2) + '₺';
+
+        const paymentPending = s.some(x => !x.isPaid && x.paymentRequested);
+        updateBillButton(paymentPending);
+
+        const myTable = tables.find(t => t.tableNo === tableNo);
+        updateCallWaiterBtn(myTable ? !!myTable.calledWaiter : false);
+
+        renderOldOrders(s);
+    } catch (e) {}
+}
+
+// --- helpers ---
+
+let _toastTimer;
+function showToast(msg, type = 't-info', ms = 2800) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'show ' + type;
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(() => t.classList.remove('show'), ms);
+}
+
+function updateBillButton(requested) {
+    paymentPending = requested;
+    const btn = qs('#askBill');
+    if (!btn) return;
+    if (requested) {
+        btn.textContent = '✖ Cancel Payment Request';
+        btn.style.background = '#e74c3c';
+        btn.onclick = async () => {
+            try {
+                await fetch('/api/cancel-payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tableNo: tableNo })
+                });
+                showToast('Payment request canceled.', 't-warning');
+                updateBillButton(false);
+            } catch (e) {
+                showToast('Could not cancel payment request.', 't-error');
+            }
+        };
+    } else {
+        btn.textContent = 'Request Bill';
+        btn.style.background = '';
+        btn.onclick = () => {
+            if (dbTotal <= 0) {
+                showToast('There is no active order to pay for.', 't-warning');
+                return;
+            }
+            modalContentArea.innerHTML = `
+                <h3>Select Payment</h3>
+                <div class="split-total-box">Total: ${formatMoney(dbTotal)}</div>
+                <button class="payment-btn" onclick="window.cardCashPayment('Card')" style="width:100%;margin-bottom:8px">💳 Pay with Card</button>
+                <button class="payment-btn" onclick="window.cardCashPayment('Cash')" style="width:100%;margin-bottom:8px">💵 Pay with Cash</button>
+                <button class="payment-btn" onclick="window.selectSplitMethod()" style="width:100%;margin-bottom:8px">🍽️ Split Bill</button>
+                <button onclick="window.closeModal('payment')" class="back-btn" style="margin-top:4px">Close</button>
+            `;
+            qs('body').classList.add('modal-open');
+            paymentModal.style.display = 'flex';
+        };
+    }
+}
+
+function updateCallWaiterBtn(called) {
+    const btn = qs('#btnCallWaiter');
+    if (!btn) return;
+    if (called) {
+        btn.textContent = '🛎️ Waiter Notified';
+        btn.style.background = '#475569';
+        btn.style.opacity = '0.8';
+        btn.style.cursor = 'default';
+        btn.disabled = true;
+    } else {
+        btn.textContent = '🛎️ Call Waiter';
+        btn.style.background = 'var(--danger)';
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+        btn.disabled = false;
+    }
+}
+
+async function renderOldOrders(allSip) {
+    if (!allSip) {
+        try {
+            const r = await fetch('/api/orders?tableNo=' + tableNo);
+            allSip = await r.json();
+        } catch {
+            allSip = [];
+        }
+    }
+
+    const mine = allSip.filter(x => !x.isPaid);
+    const oldOrdersEl = qs("#oldOrders");
+    let html = "";
+
+    if (mine.length === 0) {
+        html = `<p style="color:#90a0c0;font-size:14px;">No active orders found.</p>`;
+    } else {
+        const groupedOrders = new Map();
+        
+        mine.forEach(s => {
+            const productName = (s.productId && s.productId.name) || "Deleted Product";
+            const note = s.note || '';
+            const status = s.status || 'Received';
+            const key = `${productName}-${note}-${status}`;
+
+            if (!groupedOrders.has(key)) {
+                groupedOrders.set(key, {
+                    name: productName,
+                    totalQuantity: 0,
+                    note: note,
+                    status: status
+                });
+            }
+            const group = groupedOrders.get(key);
+            group.totalQuantity += (s.quantity || 1);
+        });
+
+        groupedOrders.forEach(group => {
+            const noteHtml = group.note ? `<div class="rNote" style="font-size: 11px; color: var(--brand);">Note: ${group.note}</div>` : '';
+
+            const statusClass = `status-${group.status.replace(/\s/g, '-')}`;
+            const statusTag = `<span class="status-tag ${statusClass}">${group.status}</span>`;
+
+            html += `
+                <div style="
+                    padding: 8px 12px;
+                    border-radius:10px;
+                    background:rgba(255,255,255,.05);
+                    margin-top:6px;
+                    display:flex;
+                    flex-wrap: nowrap;
+                    justify-content:space-between;
+                    align-items: flex-start;
+                ">
+                    
+                    <div style="flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding-right: 10px;">
+                        <span style="font-weight: 600;">${group.name}</span>
+                        ${noteHtml}
+                    </div>
+                    
+                    <div style="display: flex; align-items: flex-start; flex-shrink: 0; gap: 5px;">
+                        <span style="font-size: 13px; font-weight: 700; white-space: nowrap; margin-top: 2px;">${group.totalQuantity}x</span>
+                        ${statusTag} 
+                    </div>
+                </div>
+            `;
+        });
+    }
+    oldOrdersEl.innerHTML = html;
+}
+
+async function notifyConnection() {
+    try {
+        await fetch('/api/table-connect', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tableNo: tableNo })
+        });
+    } catch (e) {}
+}
+notifyConnection();
+
+async function loadMenu() {
+    try {
+        const r = await fetch('/api/products');
+        let rawAll = await r.json();
+        
+        allProducts = rawAll.filter(u => u.isActive !== false).map(u => ({
+            ...u,
+            name: u.name || 'Product',
+            price: Number(u.price || 0),
+            photo: u.photo,
+            category: u.category || '',
+            mainCategory: u.mainCategory || '',
+            description: u.description || '',
+            options: u.options || []
+        }));
+
+        mainCategories = [...new Set(allProducts.map(u => u.mainCategory).filter(Boolean))];
+        const defaultCategories = ['Popular', 'Food', 'Drinks'];
+        const extraCategories = mainCategories.filter(k => !defaultCategories.includes(k));
+
+        extraCategories.forEach(category => {
+            catBar.innerHTML += `<button class="pill" data-category="${category}">${category}</button>`;
+        });
+
+        renderGrid('Popular');
+    } catch (e) {
+        grid.innerHTML = `<p style="color:var(--danger); padding-left: 12px;">Menu could not be loaded.</p>`;
+    }
+}
+
+// Event listeners
+cartList.addEventListener('click', e => {
+    const btn = e.target.closest('.qBtn');
+    if (btn) {
+        const id = btn.dataset.id;
+        const op = Number(btn.dataset.op);
+        changeQty(id, op);
+    }
+});
+
+searchInput.addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase().trim();
+    if (query.length > 0) {
+        scrollToGrid();
+        renderSearchResults(query);
+    } else {
+        const activePill = qs('#catBar .pill.active') || qs('#catBar .pill[data-category=Popular]');
+        renderGrid(activePill.dataset.category);
+    }
+});
+
+catBar.addEventListener('click', e => {
+    const b = e.target.closest('.pill');
+    if (!b) return;
+
+    subBar.scrollLeft = 0;
+    searchInput.value = "";
+    qsa('#catBar .pill').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+
+    renderGrid(b.dataset.category);
+
+    scrollToGrid();
+});
+
+fab.onclick = openSheet;
+sheetBack.onclick = closeSheet;
+
+infoModal.onclick = (e) => { if (e.target === infoModal) window.closeModal('info'); };
+optionsModal.onclick = (e) => { if (e.target === optionsModal) window.closeModal('options'); };
+paymentModal.onclick = (e) => { if (e.target === paymentModal) window.closeModal('payment'); };
+
+qs('#btnCallWaiter').onclick = async () => {
+    if (confirm('Are you sure you want to call the waiter?')) {
+        try {
+            const r = await fetch('/api/call-waiter', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tableNo: tableNo })
+            });
+            if (r.ok) {
+                showToast('Waiter called. 🛎️ Our staff will attend to you shortly.', 't-success');
+                updateCallWaiterBtn(true);
+            } else {
+                showToast('Call waiter request failed.', 't-error');
+            }
+        } catch (err) {
+            showToast('An error occurred, please try again.', 't-error');
+        }
+    }
+};
+
+qs('#sendOrder').onclick = async () => {
+    if (paymentPending) {
+        showToast('A payment request is active. Cancel it first to place new orders.', 't-warning', 3500);
+        return;
+    }
+    if (!cart.length) { showToast('Cart is empty.', 't-warning'); return; }
+    const generalNote = qs('#orderNoteArea').value || "";
+    try {
+        for (const u of cart) {
+            let combinedNote = u.note || "";
+            if (u.userNote) combinedNote = combinedNote ? `${combinedNote} | ${u.userNote}` : u.userNote;
+            if (generalNote) combinedNote = combinedNote ? `${combinedNote} | ${generalNote}` : generalNote;
+
+            await fetch('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    tableNo: tableNo,
+                    productId: u._id,
+                    quantity: u.quantity,
+                    price: u.currentPrice,
+                    note: combinedNote
+                })
+            });
+        }
+        cart = [];
+        qs('#orderNoteArea').value = "";
+        syncUI();
+        localStorage.removeItem(CART_STORAGE_KEY);
+        await refreshRemoteTotal();
+        showToast('Order sent successfully ✅', 't-success');
+        closeSheet();
+    } catch (e) {
+        showToast('Error sending order. Please try again.', 't-error');
+    }
+};
+
+updateBillButton(false);
+
+optionsForm.onsubmit = (e) => {
+    e.preventDefault();
+    const productId = e.target.dataset.productId;
+    const product = allProducts.find(u => u._id === productId);
+    let selectedNotes = [];
+    let updatedPrice = product.price;
+    const selectedInputs = qsa('#optionsForm input:checked');
+    selectedInputs.forEach(input => {
+        const extraPrice = Number(input.dataset.extraprice);
+        updatedPrice += extraPrice;
+        let noteText = input.value;
+        if (extraPrice > 0) {
+            noteText += ` (+${extraPrice}₺)`;
+        }
+        selectedNotes.push(noteText);
+    });
+    const note = selectedNotes.join(', ');
+    addToCart(product, updatedPrice, note);
+    window.closeModal('options');
+    const thumbImg = qs(`.thumb[data-id="${productId}"] img`) || qs('.fab svg'); 
+    fly(thumbImg);
+};
+
+qs('#clearCartBtn').onclick = () => {
+    if (!cart.length) return;
+    if (confirm("Are you sure you want to completely clear your cart?")) {
+        cart = [];
+        syncUI();
+        localStorage.removeItem(CART_STORAGE_KEY); 
+    }
+};
+
+function showCart() {
+    qs("#cartList").style.display = "block";
+    qs("#oldOrders").style.display = "none";
+}
+function showOrders() {
+    qs("#cartList").style.display = "none";
+    qs("#oldOrders").style.display = "block";
+    refreshRemoteTotal();
+}
+qs("#tabCart").onclick = () => {
+    qs("#tabCart").classList.add("active");
+    qs("#tabOrders").classList.remove("active");
+    showCart();
+};
+qs("#tabOrders").onclick = () => {
+    qs("#tabOrders").classList.add("active");
+    qs("#tabCart").classList.remove("active");
+    showOrders();
+};
+
+// --- init ---
+loadCartFromStorage();
+syncUI();
+loadMenu();
+refreshRemoteTotal();
+setInterval(refreshRemoteTotal, 5000);
+</script>
+</body>
+</html>

@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #1e293b;
+            padding: 25px;
+            border-radius: 10px;
+        }
+
+        h1 {
+            color: #0ea5e9;
+            border-bottom: 2px solid #334155;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .tab-button {
+            padding: 10px 15px;
+            cursor: pointer;
+            background: #334155;
+            color: #e2e8f0;
+            border: none;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+            margin-right: 5px;
+            transition: background 0.3s;
+        }
+
+        .tab-button.active {
+            background: #0ea5e9;
+            color: #000;
+            font-weight: bold;
+        }
+
+        .tab-content {
+            padding: 15px 0;
+            border-top: 1px solid #334155;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="file"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #334155;
+            border-radius: 5px;
+            box-sizing: border-box;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+
+        button {
+            background: #10b981;
+            color: #fff;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background: #0c8c62;
+        }
+
+        .option-choices {
+            border: 1px solid #334155;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .option-group {
+            border: 1px dashed #475569;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+
+        .choice-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+
+        .choice-input-group input {
+            margin-top: 0;
+        }
+
+        .add-choice-btn {
+            margin-top: 5px;
+            padding: 5px 10px;
+            width: auto;
+            background: #5a5a5a;
+        }
+
+        .remove-btn {
+            background: #e74c3c;
+            width: auto;
+            margin-top: 0;
+        }
+
+        .remove-group-btn {
+            background: #e74c3c;
+            width: auto;
+            padding: 5px 10px;
+            margin-top: 10px;
+        }
+
+        .option-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            margin-bottom: 30px;
+        }
+
+        .report-table th,
+        .report-table td {
+            border: 1px solid #334155;
+            padding: 10px;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        .report-table th {
+            background: #334155;
+            color: #fff;
+        }
+
+        .pagination-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .pagination-controls button {
+            width: 150px;
+            margin: 0;
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        .product-thumbnail {
+            width: 70px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 3px;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: #1e293b;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid #0ea5e9;
+            background: #0f172a;
+            color: white;
+            font-size: 16px;
+        }
+
+        .sort-btn {
+            background: #334155;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            margin: 0 2px;
+        }
+
+        .sort-btn:hover {
+            background: #475569;
+        }
+
+        .category-block {
+            margin-bottom: 30px;
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #2b59ff;
+            padding: 10px 15px;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .category-header h3 {
+            margin: 0;
+        }
+
+        .cat-sort-btns {
+            display: flex;
+            gap: 5px;
+        }
+
+        .category-content {
+            display: none;
+        }
+
+        .category-block.open .category-content {
+            display: block;
+        }
+
+        .out-of-stock-alert {
+            background: #721c24;
+            color: #f8d7da;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: 10px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .cat-move-btn {
+            background: #475569 !important;
+            font-size: 12px !important;
+            padding: 4px 8px !important;
+            width: auto !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Panel</h1>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="openTab('list')">📋 Product List</button>
+            <button class="tab-button" onclick="openTab('add')">➕ Add Product</button>
+            <button class="tab-button" onclick="openTab('daily')">📅 Daily Receipt</button>
+            <button class="tab-button" onclick="openTab('report')">📈 Best Sellers</button>
+        </div>
+
+        <div id="list" class="tab-content">
+            <h2>Manage Existing Products</h2>
+            <input type="text" id="productSearch" class="search-box" placeholder="Search product..." onkeyup="filterProducts()">
+            <div id="groupedProductList"></div>
+        </div>
+
+        <div id="add" class="tab-content" style="display: none;">
+            <form id="addProductForm" enctype="multipart/form-data">
+                <h2>Basic Product Information</h2>
+
+                <label for="name">Product Name:</label>
+                <input type="text" id="name" name="name" required>
+
+                <label for="price">Price (₺):</label>
+                <input type="number" id="price" name="price" min="0" step="any" required>
+
+                <label for="mainCategory">Main Category:</label>
+                <select id="mainCategory" name="mainCategory" required>
+                    <option value="Food">Food</option>
+                    <option value="Drinks">Drinks</option>
+                </select>
+
+                <label for="categorySelect">Sub Category:</label>
+                <select id="categorySelect" name="categorySelect" onchange="handleSubCategory(this, 'newCategoryContainer', 'category')"></select>
+                <div id="newCategoryContainer" style="display:none; margin-top:10px;">
+                    <input type="text" id="category" name="category" placeholder="Enter new sub category">
+                </div>
+
+                <label for="prepLocation">Prep Location:</label>
+                <select id="prepLocation" name="prepLocation" required>
+                    <option value="Kitchen">Kitchen</option>
+                    <option value="Service">Service (Ready Item)</option>
+                </select>
+
+                <label for="description">Description (Optional):</label>
+                <textarea id="description" name="description" rows="3"></textarea>
+
+                <label for="photoFile">Product Photo (.jpg/.png):</label>
+                <input type="file" id="photoFile" name="photoFile" accept="image/*">
+
+                <hr style="margin: 25px 0; border-color: #334155;">
+
+                <h2>Option Management</h2>
+                <label>Add New Option Group:</label>
+                <div style="display:flex; gap: 10px;">
+                    <button type="button" onclick="addOptionGroup()">+ Add Group</button>
+                </div>
+
+                <div id="optionsArea" style="margin-top: 15px;"></div>
+
+                <button type="submit">Save Product</button>
+            </form>
+            <p id="message" style="margin-top: 20px; color: yellow;"></p>
+        </div>
+
+        <div id="daily" class="tab-content" style="display: none;">
+            <h2>End of Day Receipt</h2>
+            <div style="display: flex; gap: 10px; margin-bottom: 20px; align-items: center; background: #334155; padding: 15px; border-radius: 8px;">
+                <label for="reportDate" style="margin-top: 0;">Select Date:</label>
+                <input type="date" id="reportDate" style="width: auto; margin-top: 0; flex: 1; max-width: 200px;">
+                <button onclick="getDailyReceipt()" style="width: auto; margin-top: 0; background: #0ea5e9;">Get Receipt</button>
+                <button onclick="clearDailyReceipt()" style="width: auto; margin-top: 0; background: #e74c3c;">Clear Selected Day</button>
+            </div>
+
+            <h3 id="selectedDateTitle" style="color: #10b981; text-align: center; margin-bottom: 20px;"></h3>
+
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Product Name</th>
+                        <th>Sales Quantity</th>
+                        <th>Revenue (₺)</th>
+                    </tr>
+                </thead>
+                <tbody id="dailyReceiptBody">
+                    <tr><td colspan="4" style="text-align: center;">Please select a date and click "Get Receipt".</td></tr>
+                </tbody>
+                <tfoot>
+                    <tr style="background: #1e293b;">
+                        <th colspan="3" style="text-align: right; font-size: 18px;">TOTAL REVENUE:</th>
+                        <th id="dailyTotalRevenue" style="font-size: 18px; color: #10b981;">0.00₺</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div id="report" class="tab-content" style="display: none;">
+            <h2>Best Sellers Report (By Quantity)</h2>
+            <div id="reportContent">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Product Name</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Sales Quantity</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bestSellersTable"></tbody>
+                </table>
+            </div>
+
+            <div class="pagination-controls">
+                <button id="prevPageBtn" onclick="changePage(-1)" disabled>← Previous Page</button>
+                <span id="pageInfo" style="align-self: center; font-weight: bold;">Page 1 / 1</span>
+                <button id="nextPageBtn" onclick="changePage(1)" disabled>Next Page →</button>
+            </div>
+            <button onclick="getBestSellers()">Refresh Report</button>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal-backdrop">
+        <div class="modal-content" style="max-width: 650px;">
+            <form id="editProductForm" enctype="multipart/form-data">
+                <h3 id="editTitle">Edit Product</h3>
+                <input type="hidden" id="editProductId" name="productId">
+
+                <h2>Basic Information</h2>
+
+                <label for="editName">Product Name:</label>
+                <input type="text" id="editName" name="name" required>
+
+                <label for="editPrice">Price (₺):</label>
+                <input type="number" id="editPrice" name="price" min="0" step="any" required>
+
+                <label for="editMainCategory">Main Category:</label>
+                <select id="editMainCategory" name="mainCategory" required>
+                    <option value="Food">Food</option>
+                    <option value="Drinks">Drinks</option>
+                </select>
+
+                <label for="editCategorySelect">Sub Category:</label>
+                <select id="editCategorySelect" name="editCategorySelect" onchange="handleSubCategory(this, 'editNewCategoryContainer', 'editCategory')"></select>
+                <div id="editNewCategoryContainer" style="display:none; margin-top:10px;">
+                    <input type="text" id="editCategory" name="category" placeholder="Enter new sub category">
+                </div>
+
+                <label for="editPrepLocation">Prep Location:</label>
+                <select id="editPrepLocation" name="prepLocation" required>
+                    <option value="Kitchen">Kitchen</option>
+                    <option value="Service">Service (Ready Item)</option>
+                </select>
+
+                <label for="editIsActive">Product Status (Visible on Menu?):</label>
+                <select id="editIsActive" name="isActive">
+                    <option value="true">🟢 Published (Customers can see)</option>
+                    <option value="false">🔴 Out of Stock / Hidden</option>
+                </select>
+
+                <label for="editDescription">Description (Optional):</label>
+                <textarea id="editDescription" name="description" rows="3"></textarea>
+
+                <label>Current Photo: <span id="currentPhotoName" style="color:#10b981;"></span></label>
+                <label for="editPhotoFile">Upload New Photo (Optional):</label>
+                <input type="file" id="editPhotoFile" name="photoFile" accept="image/*">
+
+                <hr style="margin: 25px 0; border-color: #334155;">
+                <h2>Option Management</h2>
+                <div id="editOptionsArea" style="margin-top: 15px;"></div>
+                <div style="display:flex; gap: 10px; margin-top: 20px;">
+                    <button type="button" onclick="addEditOptionGroup()" style="background: #0ea5e9; flex: 1;">+ Add New Group</button>
+                </div>
+                <div class="modal-actions" style="margin-top: 30px; display: flex; gap: 10px;">
+                    <button type="button" onclick="closeEditModal()" style="background: #334155; flex: 1;">Cancel</button>
+                    <button type="submit" style="background: #10b981; flex: 1;">Save Changes</button>
+                </div>
+            </form>
+            <p id="editMessage" style="margin-top: 20px; color: yellow;"></p>
+        </div>
+    </div>
+
+    <script>
+        const options = [];
+        // --- state ---
+        let allProductsList = [];
+        let editOptions = [];
+        let bestSellers = [];
+        let currentPage = 1;
+        const itemsPerPage = 50;
+
+        // --- tabs ---
+        function openTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabName).style.display = 'block';
+            document.querySelector(`.tab-button[onclick="openTab('${tabName}')"]`).classList.add('active');
+            if (tabName === 'report') getBestSellers();
+            if (tabName === 'list' || tabName === 'add') getProductList();
+        }
+
+        function populateCategoryDropdowns() {
+            const subs = [...new Set(allProductsList.map(p => p.category).filter(Boolean))];
+            const selects = [
+                document.getElementById('categorySelect'),
+                document.getElementById('editCategorySelect')
+            ];
+
+            selects.forEach(select => {
+                if (!select) return;
+                const currentVal = select.value;
+                select.innerHTML = `<option value="">Select a subcategory</option>`;
+                subs.forEach(s => {
+                    select.innerHTML += `<option value="${s}">${s}</option>`;
+                });
+                select.innerHTML += `<option value="_NEW_" style="color:#0ea5e9; font-weight:bold;">+ Add New Sub Category</option>`;
+                if (subs.includes(currentVal)) select.value = currentVal;
+            });
+        }
+
+        function handleSubCategory(selectEl, containerId, inputId) {
+            const container = document.getElementById(containerId);
+            const input = document.getElementById(inputId);
+            if (selectEl.value === '_NEW_') {
+                container.style.display = 'block';
+                input.value = '';
+                input.required = true;
+            } else {
+                container.style.display = 'none';
+                input.value = selectEl.value;
+                input.required = false;
+            }
+        }
+
+        function filterProducts() {
+            const query = document.getElementById('productSearch').value.toLowerCase();
+            document.querySelectorAll('.category-block').forEach(block => {
+                let hasMatch = false;
+                block.querySelectorAll('.product-row').forEach(row => {
+                    const name = row.querySelector('.p-name').innerText.toLowerCase();
+                    if (name.includes(query)) {
+                        row.style.display = '';
+                        hasMatch = true;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                if (hasMatch && query !== '') {
+                    block.classList.add('open');
+                    block.style.display = '';
+                } else if (query === '') {
+                    block.classList.remove('open');
+                    block.style.display = '';
+                } else {
+                    block.style.display = 'none';
+                }
+            });
+        }
+
+        // --- products ---
+        async function getProductList() {
+            const container = document.getElementById('groupedProductList');
+            container.innerHTML = '<p>Loading products...</p>';
+            try {
+                const response = await fetch('/api/products', { credentials: 'include' });
+                if (response.status === 401) return;
+                allProductsList = await response.json();
+                populateCategoryDropdowns();
+                if (allProductsList.length === 0) return;
+
+                const groups = {};
+                allProductsList.forEach(p => {
+                    const key = `${p.mainCategory} - ${p.category || 'Uncategorized'}`;
+                    if (!groups[key]) groups[key] = [];
+                    groups[key].push(p);
+                });
+
+                const sortedGroupKeys = Object.keys(groups);
+                container.innerHTML = '';
+                sortedGroupKeys.forEach((key, groupIdx) => {
+                    const block = document.createElement('div');
+                    block.className = 'category-block';
+
+                    const hasOutOfStock = groups[key].some(p => p.isActive === false);
+                    const stockWarning = hasOutOfStock ? `<span class="out-of-stock-alert">⚠️ Contains Out of Stock</span>` : '';
+
+                    const btnUp = groupIdx > 0
+                        ? `<button type="button" class="cat-move-btn" onclick="event.stopPropagation(); swapCategoryOrder('${key}', '${sortedGroupKeys[groupIdx - 1]}')">MOVE UP ↑</button>`
+                        : '';
+                    const btnDown = groupIdx < sortedGroupKeys.length - 1
+                        ? `<button type="button" class="cat-move-btn" onclick="event.stopPropagation(); swapCategoryOrder('${key}', '${sortedGroupKeys[groupIdx + 1]}')">MOVE DOWN ↓</button>`
+                        : '';
+
+                    let tableHtml = `
+                        <div class="category-header" onclick="this.parentElement.classList.toggle('open')">
+                            <div style="display:flex; align-items:center;">
+                                <span style="margin-right:10px;">▶</span>
+                                <h3>${key} ${stockWarning}</h3>
+                            </div>
+                            <div class="cat-sort-btns">${btnUp}${btnDown}</div>
+                        </div>
+                        <div class="category-content">
+                            <table class="report-table">
+                                <thead>
+                                    <tr>
+                                        <th>Photo</th>
+                                        <th>Product</th>
+                                        <th>Price</th>
+                                        <th>Sort</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+
+                    groups[key].forEach((product, index) => {
+                        const img = product.photo || '/images/placeholder.jpg';
+                        const hideTag = product.isActive === false
+                            ? '<br><span style="color:#e74c3c; font-size:11px; font-weight:bold;">(🔴 Hidden / Out of Stock)</span>'
+                            : '';
+                        const pUp = index > 0
+                            ? `<button type="button" class="sort-btn" onclick="swapOrder('${product._id}', '${groups[key][index - 1]._id}')">▲</button>`
+                            : '';
+                        const pDown = index < groups[key].length - 1
+                            ? `<button type="button" class="sort-btn" onclick="swapOrder('${product._id}', '${groups[key][index + 1]._id}')">▼</button>`
+                            : '';
+
+                        tableHtml += `
+                            <tr class="product-row">
+                                <td><img src="${img}" class="product-thumbnail"></td>
+                                <td class="p-name"><b>${product.name}</b>${hideTag}</td>
+                                <td>${(product.price || 0).toFixed(2)}₺</td>
+                                <td>${pUp}${pDown}</td>
+                                <td>
+                                    <button type="button" onclick="openEditModal('${product._id}')" style="width:auto; padding:6px; background:#0ea5e9;">Edit</button>
+                                    <button type="button" onclick="deleteProduct('${product._id}', '${product.name}')" style="width:auto; padding:6px; background:#e74c3c;">Delete</button>
+                                </td>
+                            </tr>`;
+                    });
+
+                    tableHtml += `</tbody></table></div>`;
+                    block.innerHTML = tableHtml;
+                    container.appendChild(block);
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function swapCategoryOrder(catKey1, catKey2) {
+            const group1 = allProductsList.filter(p => `${p.mainCategory} - ${p.category || 'Uncategorized'}` === catKey1);
+            const group2 = allProductsList.filter(p => `${p.mainCategory} - ${p.category || 'Uncategorized'}` === catKey2);
+
+            const minOrder1 = Math.min(...group1.map(p => p.orderNo));
+            const minOrder2 = Math.min(...group2.map(p => p.orderNo));
+            const diff = minOrder2 - minOrder1;
+
+            const updates = [];
+            group1.forEach(p => updates.push({ id: p._id, orderNo: p.orderNo + diff }));
+            group2.forEach(p => updates.push({ id: p._id, orderNo: p.orderNo - diff }));
+
+            try {
+                await fetch('/api/reorder-products', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ updates })
+                });
+                getProductList();
+            } catch (err) {
+                alert("Error reordering categories.");
+            }
+        }
+
+        async function swapOrder(id1, id2) {
+            const p1 = allProductsList.find(p => p._id === id1);
+            const p2 = allProductsList.find(p => p._id === id2);
+            if (!p1 || !p2) return;
+
+            try {
+                await fetch('/api/reorder-products', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        updates: [
+                            { id: id1, orderNo: p2.orderNo },
+                            { id: id2, orderNo: p1.orderNo }
+                        ]
+                    })
+                });
+                getProductList();
+            } catch (err) {
+                alert("Sorting failed.");
+            }
+        }
+
+        function openEditModal(productId) {
+            const product = allProductsList.find(u => u._id === productId);
+            if (!product) {
+                alert("Product data not found.");
+                return;
+            }
+
+            document.getElementById('editTitle').textContent = `Edit Product: ${product.name}`;
+            document.getElementById('editProductId').value = product._id;
+            document.getElementById('editName').value = product.name;
+            document.getElementById('editPrice').value = product.price;
+            document.getElementById('editMainCategory').value = product.mainCategory || 'Food';
+
+            const sel = document.getElementById('editCategorySelect');
+            sel.value = product.category || '';
+            handleSubCategory(sel, 'editNewCategoryContainer', 'editCategory');
+
+            document.getElementById('editPrepLocation').value = product.prepLocation || 'Kitchen';
+            document.getElementById('editIsActive').value = product.isActive !== false ? 'true' : 'false';
+            document.getElementById('editDescription').value = product.description || '';
+            document.getElementById('currentPhotoName').textContent = product.photo || 'No photo';
+
+            editOptions = JSON.parse(JSON.stringify(product.options || []));
+            renderEditOptions();
+
+            document.getElementById('editMessage').textContent = '';
+            document.getElementById('editModal').style.display = 'flex';
+
+            const modalContent = document.querySelector('#editModal .modal-content');
+            if (modalContent) modalContent.scrollTop = 0;
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+            editOptions = [];
+        }
+
+        document.getElementById('editModal').addEventListener('click', function (e) {
+            if (e.target === this) closeEditModal();
+        });
+
+        document.getElementById('addProductForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const form = e.target;
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = 'Saving...';
+            messageEl.style.color = 'yellow';
+
+            const finalCategory = form.categorySelect.value === '_NEW_'
+                ? form.category.value.trim()
+                : form.categorySelect.value;
+
+            const formData = new FormData();
+            formData.append('name', form.name.value.trim());
+            formData.append('price', parseFloat(form.price.value));
+            formData.append('mainCategory', form.mainCategory.value);
+            formData.append('category', finalCategory);
+            formData.append('prepLocation', form.prepLocation.value);
+            formData.append('description', form.description.value.trim());
+            formData.append('optionsJSON', JSON.stringify(options));
+            if (form.photoFile.files.length > 0) formData.append('photoFile', form.photoFile.files[0]);
+
+            try {
+                const response = await fetch('/api/products', { method: 'POST', body: formData });
+                const data = await response.json();
+
+                if (response.ok) {
+                    messageEl.textContent = `✅ Product added successfully: ${data.product.name}`;
+                    messageEl.style.color = '#10b981';
+                    form.reset();
+                    options.length = 0;
+                    renderOptions();
+                    getProductList();
+                } else {
+                    messageEl.textContent = `❌ Error: ${data.message || 'Product could not be added.'}`;
+                    messageEl.style.color = '#e74c3c';
+                }
+            } catch (error) {
+                messageEl.textContent = '❌ Could not connect to server.';
+                messageEl.style.color = '#e74c3c';
+            }
+        });
+
+        document.getElementById('editProductForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const form = e.target;
+            const productId = form.editProductId.value;
+            const messageEl = document.getElementById('editMessage');
+            messageEl.textContent = 'Updating...';
+            messageEl.style.color = 'yellow';
+
+            const finalCategory = form.editCategorySelect.value === '_NEW_'
+                ? form.editCategory.value.trim()
+                : form.editCategorySelect.value;
+
+            const formData = new FormData();
+            formData.append('name', form.editName.value.trim());
+            formData.append('price', parseFloat(form.editPrice.value));
+            formData.append('mainCategory', form.editMainCategory.value);
+            formData.append('category', finalCategory);
+            formData.append('prepLocation', form.editPrepLocation.value);
+            formData.append('isActive', form.editIsActive.value);
+            formData.append('description', form.editDescription.value.trim());
+            formData.append('optionsJSON', JSON.stringify(editOptions));
+            if (form.editPhotoFile.files.length > 0) formData.append('photoFile', form.editPhotoFile.files[0]);
+
+            try {
+                const response = await fetch(`/api/update-product/${productId}`, {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'include'
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    messageEl.textContent = `✅ ${data.product.name} updated successfully.`;
+                    messageEl.style.color = '#10b981';
+                    getProductList();
+                    closeEditModal();
+                } else {
+                    messageEl.textContent = `❌ Error: ${data.message || 'Product could not be updated.'}`;
+                    messageEl.style.color = '#e74c3c';
+                }
+            } catch (error) {
+                messageEl.textContent = '❌ Network error.';
+                messageEl.style.color = '#e74c3c';
+            }
+        });
+
+        async function deleteProduct(productId, productName) {
+            if (!confirm(`Are you sure you want to delete ${productName}?`)) return;
+            try {
+                const res = await fetch(`/api/delete-product/${productId}`, { method: 'DELETE' });
+                if (res.ok) {
+                    getProductList();
+                } else {
+                    alert("Cannot delete (possibly in active order).");
+                }
+            } catch (e) {
+                alert("Server error.");
+            }
+        }
+
+        function buildOptionGroupHtml(g, gIdx, isEdit) {
+            const prefix = isEdit ? 'editOptions' : 'options';
+            const removeFn = isEdit ? 'removeEditOptionGroup' : 'removeOptionGroup';
+            const addChoiceFn = isEdit ? 'addEditChoice' : 'addChoice';
+            const removeChoiceFn = isEdit ? 'removeEditChoice' : 'removeChoice';
+
+            let chHtml = '';
+            g.choices.forEach((c, cIdx) => {
+                chHtml += `
+                    <div class="choice-input-group">
+                        <input type="text" placeholder="Name" value="${c.name}" oninput="${prefix}[${gIdx}].choices[${cIdx}].name=this.value" style="flex:3">
+                        <input type="number" placeholder="Price ₺" value="${c.extraPrice}" oninput="${prefix}[${gIdx}].choices[${cIdx}].extraPrice=parseFloat(this.value)||0" style="flex:1">
+                        <button type="button" class="remove-btn" onclick="${removeChoiceFn}(${gIdx},${cIdx})">X</button>
+                    </div>`;
+            });
+
+            return `
+                <div class="option-group">
+                    <div class="option-header">
+                        <input type="text" value="${g.title}" oninput="${prefix}[${gIdx}].title=this.value" style="width:50%">
+                        <select onchange="${prefix}[${gIdx}].type=this.value" style="width:30%">
+                            <option value="single" ${g.type === 'single' ? 'selected' : ''}>Single</option>
+                            <option value="multiple" ${g.type === 'multiple' ? 'selected' : ''}>Multiple</option>
+                        </select>
+                        <button type="button" class="remove-group-btn" onclick="${removeFn}(${gIdx})">Drop</button>
+                    </div>
+                    <div class="option-choices">
+                        ${chHtml}
+                        <button type="button" class="add-choice-btn" onclick="${addChoiceFn}(${gIdx})">+ Add</button>
+                    </div>
+                </div>`;
+        }
+
+        function addOptionGroup() {
+            options.push({ title: `Group ${options.length + 1}`, type: 'single', choices: [{ name: 'Standard', extraPrice: 0 }] });
+            renderOptions();
+        }
+
+        function removeOptionGroup(idx) {
+            options.splice(idx, 1);
+            renderOptions();
+        }
+
+        function addChoice(idx) {
+            options[idx].choices.push({ name: '', extraPrice: 0 });
+            renderOptions();
+        }
+
+        function removeChoice(gIdx, cIdx) {
+            options[gIdx].choices.splice(cIdx, 1);
+            renderOptions();
+        }
+
+        function renderOptions() {
+            const area = document.getElementById('optionsArea');
+            area.innerHTML = '';
+            options.forEach((g, gIdx) => {
+                area.innerHTML += buildOptionGroupHtml(g, gIdx, false);
+            });
+        }
+
+        function addEditOptionGroup() {
+            editOptions.push({ title: `Group ${editOptions.length + 1}`, type: 'single', choices: [{ name: 'Standard', extraPrice: 0 }] });
+            renderEditOptions();
+        }
+
+        function removeEditOptionGroup(idx) {
+            editOptions.splice(idx, 1);
+            renderEditOptions();
+        }
+
+        function addEditChoice(idx) {
+            editOptions[idx].choices.push({ name: '', extraPrice: 0 });
+            renderEditOptions();
+        }
+
+        function removeEditChoice(gIdx, cIdx) {
+            editOptions[gIdx].choices.splice(cIdx, 1);
+            renderEditOptions();
+        }
+
+        function renderEditOptions() {
+            const area = document.getElementById('editOptionsArea');
+            area.innerHTML = '';
+            editOptions.forEach((g, gIdx) => {
+                area.innerHTML += buildOptionGroupHtml(g, gIdx, true);
+            });
+        }
+
+        // --- reports ---
+        async function getDailyReceipt() {
+            const dateInput = document.getElementById('reportDate').value;
+            const tbody = document.getElementById('dailyReceiptBody');
+            const totalRevenueEl = document.getElementById('dailyTotalRevenue');
+            if (!dateInput) return;
+
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Loading...</td></tr>';
+            try {
+                const response = await fetch(`/api/daily-receipt?date=${dateInput}`);
+                const data = await response.json();
+                tbody.innerHTML = '';
+                data.data.forEach((item, i) => {
+                    tbody.innerHTML += `<tr><td>${i + 1}</td><td>${item.name}</td><td>${item.totalQuantity}</td><td>${item.totalRevenue.toFixed(2)}₺</td></tr>`;
+                });
+                const cardTotal = (data.cardTotal || 0).toFixed(2);
+                const cashTotal = (data.cashTotal || 0).toFixed(2);
+                totalRevenueEl.innerHTML = `${data.overallTotalRevenue.toFixed(2)}₺<br><span style="font-size:13px; color:#94a3b8; font-weight:normal;">💳 Card: ${cardTotal}₺ &nbsp;|&nbsp; 💵 Cash: ${cashTotal}₺</span>`;
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Error.</td></tr>';
+            }
+        }
+
+        async function clearDailyReceipt() {
+            const dateInput = document.getElementById('reportDate').value;
+            if (!dateInput) return;
+            if (!confirm('Are you sure?')) return;
+            try {
+                const res = await fetch(`/api/clear-daily-receipt?date=${dateInput}`, { method: 'DELETE' });
+                if (res.ok) getDailyReceipt();
+            } catch (error) {
+                alert("Deletion failed.");
+            }
+        }
+
+        function renderBestSellersPage() {
+            const tbody = document.getElementById('bestSellersTable');
+            const totalItems = bestSellers.length;
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            const start = (currentPage - 1) * itemsPerPage;
+            const displayItems = bestSellers.slice(start, start + itemsPerPage);
+
+            if (totalItems === 0) {
+                tbody.innerHTML = '<tr><td colspan="5">No products.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            displayItems.forEach((p, i) => {
+                tbody.innerHTML += `<tr><td>${start + i + 1}</td><td>${p.name}</td><td>${p.mainCategory}</td><td>${(p.price || 0).toFixed(2)}₺</td><td><strong>${p.salesCount}</strong></td></tr>`;
+            });
+
+            document.getElementById('pageInfo').textContent = `Page ${currentPage} / ${totalPages}`;
+            document.getElementById('prevPageBtn').disabled = currentPage === 1;
+            document.getElementById('nextPageBtn').disabled = currentPage === totalPages;
+        }
+
+        function changePage(val) {
+            const newPage = currentPage + val;
+            if (newPage >= 1 && newPage <= Math.ceil(bestSellers.length / itemsPerPage)) {
+                currentPage = newPage;
+                renderBestSellersPage();
+            }
+        }
+
+        // --- best sellers ---
+        async function getBestSellers() {
+            try {
+                const res = await fetch('/api/best-sellers');
+                bestSellers = await res.json();
+                currentPage = 1;
+                renderBestSellersPage();
+            } catch (e) {
+                alert("Error loading report");
+            }
+        }
+
+        // --- init ---
+        openTab('list');
+        const today = new Date();
+        document.getElementById('reportDate').value = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+    </script>
+</body>
+</html>

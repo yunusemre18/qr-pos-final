@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Waiter Panel</title>
+<style>
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        display: flex;
+        margin: 0;
+        height: 100vh;
+        background: #0f172a;
+        color: #e2e8f0;
+    }
+
+    #tables-container {
+        width: 25%;
+        background: #1e293b;
+        color: #fff;
+        padding: 10px;
+        overflow-y: auto;
+    }
+
+    .table-card {
+        background: #334155;
+        margin: 8px 0;
+        padding: 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: .2s;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 16px;
+    }
+
+    .table-card:hover {
+        background: #3f4d63;
+    }
+
+    .table-card.active {
+        background: #0ea5e9;
+        color: #000;
+        font-weight: 700;
+    }
+
+    .table-card.payment-request {
+        background: #eab308;
+        color: #000;
+        font-weight: 700;
+        animation: blink 1s infinite;
+    }
+
+    .table-card.waiter-called {
+        background: #f43f5e;
+        color: #fff;
+        font-weight: 700;
+        animation: blink 0.8s infinite;
+    }
+
+    #detail-panel {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        background: #0f172a;
+    }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    th,
+    td {
+        border: 1px solid #334155;
+        padding: 10px;
+        text-align: center;
+        color: #e2e8f0;
+    }
+
+    th {
+        background: #1e293b;
+        font-weight: 700;
+    }
+
+    .detail-table-selected tbody tr td {
+        background: #fff !important;
+        color: #000 !important;
+    }
+
+    .detail-table-selected tbody tr td button {
+        background: #1e293b !important;
+        color: #fff !important;
+        border: 1px solid #475569;
+    }
+
+    button {
+        padding: 6px 12px;
+        background: #0ea5e9;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: #0284c7;
+    }
+
+    .btn-delete {
+        background: #e74c3c !important;
+    }
+
+    .btn-delete:hover {
+        background: #c0392b !important;
+    }
+
+    .btn-ready {
+        background: #10b981 !important;
+        color: #000 !important;
+    }
+
+    .btn-received {
+        background: #eab308 !important;
+        color: #000 !important;
+    }
+
+    #notifications-box {
+        background: #3b2f00;
+        border: 1px solid #a48200;
+        padding: 10px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+        font-weight: 700;
+        color: #ffec78;
+        display: none;
+    }
+
+    #waiter-notifications-box {
+        background: #5f0000;
+        border: 1px solid #f43f5e;
+        padding: 10px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+        font-weight: 700;
+        color: #ffcaca;
+        display: none;
+    }
+
+    .order-note {
+        font-size: 12px;
+        color: #000000;
+        font-style: italic;
+        margin-top: 4px;
+    }
+
+    .detail-table-selected .order-note {
+        color: #149174 !important;
+    }
+
+    .payment-box {
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+
+    .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        z-index: 100;
+        display: none;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-content {
+        background: #1e293b;
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid #334155;
+        width: 90%;
+        max-width: 400px;
+        color: #e2e8f0;
+    }
+
+    .modal-content h3 {
+        margin: 0 0 16px;
+        color: #0ea5e9;
+    }
+
+    .modal-content input,
+    .modal-content select,
+    .modal-content textarea {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #334155;
+        background: #0f172a;
+        color: #e2e8f0;
+        font-size: 14px;
+        margin-bottom: 12px;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 20px;
+    }
+
+    .modal-actions button[type="submit"] {
+        background: #10b981;
+    }
+
+    .modal-actions button[type="button"] {
+        background: #334155;
+    }
+
+    .receipt-modal {
+        display: none;
+        position: fixed;
+        z-index: 110;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.8);
+        justify-content: center;
+        align-items: center;
+    }
+
+    .receipt-content {
+        background: #fff;
+        color: #000;
+        padding: 15px;
+        border-radius: 5px;
+        width: 300px;
+        max-height: 90vh;
+        overflow-y: auto;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .receipt-header {
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    .receipt-header h3 {
+        margin-bottom: 5px;
+        color: #333;
+    }
+
+    .receipt-header p {
+        font-size: 12px;
+        color: #555;
+    }
+
+    .receipt-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+    .receipt-table th,
+    .receipt-table td {
+        padding: 5px 0;
+        border: none;
+        text-align: left;
+        vertical-align: top;
+    }
+
+    .receipt-table th {
+        font-weight: bold;
+        color: #333;
+    }
+
+    .receipt-table td {
+        color: #222;
+    }
+
+    .receipt-table .total-row {
+        border-top: 1px dashed #000;
+        font-weight: bold;
+        margin-top: 5px;
+    }
+
+    .receipt-table .total-row td {
+        font-size: 16px;
+        color: #000;
+    }
+
+    .split-item {
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px dashed #ccc;
+    }
+
+    .split-item span {
+        color: #222;
+    }
+
+    .split-item strong {
+        color: #000;
+    }
+
+    .payment-method-icon {
+        font-size: 12px;
+        color: #555;
+        margin-left: 5px;
+        font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Segoe UI Symbol', sans-serif;
+    }
+
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+
+        .print-area,
+        .print-area * {
+            visibility: visible;
+        }
+
+        .receipt-modal {
+            display: block !important;
+            position: static !important;
+            background-color: transparent !important;
+        }
+
+        .print-area {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .print-button {
+            display: none !important;
+        }
+    }
+
+    @keyframes blink {
+        0% { opacity: 1; }
+        50% { opacity: .3; }
+        100% { opacity: 1; }
+    }
+</style>
+<script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div id="tables-container">
+        <h2>Tables</h2>
+        <div id="tableList"></div>
+        <button onclick="openManualOrderModal(null)" style="width: 100%; background: #10b981; margin-top: 15px; padding: 10px; font-size: 16px;">
+            + Manual Order
+        </button>
+    </div>
+
+    <div id="detail-panel">
+        <button id="backBtn" style="display:none; margin-bottom:10px;" onclick="goBack()">⬅ Main Menu</button>
+        <h2 id="panelTitle">ACTIVE WAITER ORDERS</h2>
+        <div id="waiter-notifications-box"></div>
+        <div id="notifications-box"></div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Table</th>
+                    <th>Product</th>
+                    <th>Qty</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="ordersBody"></tbody>
+        </table>
+        <div id="paymentStatusBox"></div>
+        <div id="detailTotalBox"></div>
+    </div>
+
+    <div id="manualOrderModal" class="modal-backdrop">
+        <div class="modal-content" style="max-width:500px; width:95%; padding:0; display:flex; flex-direction:column; max-height:90vh; overflow:hidden;">
+
+            <div style="padding:16px 20px 12px; border-bottom:1px solid #334155; flex-shrink:0;">
+                <h3 id="manualOrderTitle" style="margin:0 0 14px; color:#0ea5e9;">Manual Order</h3>
+                <label style="font-size:12px; color:#94a3b8; font-weight:600; display:block; margin-bottom:4px;">TABLE NUMBER</label>
+                <input type="number" id="manualTableNoInput" placeholder="e.g. 5"
+                       style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid #334155; background:#0f172a; color:#e2e8f0; font-size:14px; box-sizing:border-box; margin:0;">
+            </div>
+
+            <div style="flex:1; overflow-y:auto; padding:12px 20px; display:flex; flex-direction:column; gap:12px; min-height:0;">
+
+                <div>
+                    <label style="font-size:12px; color:#94a3b8; font-weight:600; display:block; margin-bottom:6px;">ADD PRODUCTS</label>
+                    <input type="text" id="manualProductSearch" placeholder="🔍 Search product..."
+                           oninput="renderManualProductList()"
+                           style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid #334155; background:#0f172a; color:#e2e8f0; font-size:13px; box-sizing:border-box; margin:0 0 6px;">
+                    <div id="manualProductList" style="max-height:200px; overflow-y:auto; border:1px solid #334155; border-radius:8px; background:#0f172a;"></div>
+                </div>
+
+                <div>
+                    <label style="font-size:12px; color:#94a3b8; font-weight:600; display:block; margin-bottom:6px;">SELECTED ITEMS</label>
+                    <div id="manualCartItems"></div>
+                </div>
+
+            </div>
+
+            <div style="padding:12px 20px; border-top:1px solid #334155; flex-shrink:0;">
+                <div id="manualOrderTotal" style="text-align:right; font-weight:700; font-size:15px; color:#10b981; margin-bottom:10px;"></div>
+                <div style="display:flex; gap:10px;">
+                    <button type="button" onclick="closeManualOrderModal()" style="flex:1; background:#334155; margin:0; padding:10px; width:auto;">Cancel</button>
+                    <button type="button" onclick="submitManualOrder()" style="flex:2; background:#10b981; margin:0; padding:10px; width:auto; font-weight:700;">Send Order</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="receiptModal" class="receipt-modal">
+        <div id="receiptContent" class="receipt-content print-area"></div>
+    </div>
+
+    <div id="paymentMethodModal" class="modal-backdrop">
+        <div class="modal-content" style="max-width:360px;">
+            <h3>How was Table <span id="pmTableNo"></span> paid?</h3>
+            <p style="color:#94a3b8; margin:0 0 14px; font-size:14px;">
+                Total: <strong style="color:#e2e8f0;"><span id="pmTotal"></span>₺</strong>
+            </p>
+            <div style="display:flex; gap:8px; margin-bottom:14px;">
+                <button class="pm-btn" data-method="Cash" onclick="selectPM('Cash')"
+                    style="flex:1; background:#1e293b; border:2px solid #334155; border-radius:8px; padding:12px 6px; font-size:15px; color:#e2e8f0; cursor:pointer;">
+                    💵 Cash
+                </button>
+                <button class="pm-btn" data-method="Card" onclick="selectPM('Card')"
+                    style="flex:1; background:#1e293b; border:2px solid #334155; border-radius:8px; padding:12px 6px; font-size:15px; color:#e2e8f0; cursor:pointer;">
+                    💳 Card
+                </button>
+                <button class="pm-btn" data-method="Split" onclick="selectPM('Split')"
+                    style="flex:1; background:#1e293b; border:2px solid #334155; border-radius:8px; padding:12px 6px; font-size:15px; color:#e2e8f0; cursor:pointer;">
+                    ✂️ Split
+                </button>
+            </div>
+            <div id="pmSplitInputs" style="display:none; margin-bottom:12px;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                    <label style="width:50px; font-size:13px; color:#e2e8f0;">Cash ₺</label>
+                    <input type="number" id="pmCashInput" min="0" step="0.01" placeholder="0.00"
+                        oninput="onPMSplitInput()"
+                        style="flex:1; padding:8px; border-radius:6px; border:1px solid #334155; background:#0f172a; color:#e2e8f0;">
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <label style="width:50px; font-size:13px; color:#e2e8f0;">Card ₺</label>
+                    <input type="number" id="pmCardInput" min="0" step="0.01" placeholder="0.00"
+                        oninput="onPMSplitInput()"
+                        style="flex:1; padding:8px; border-radius:6px; border:1px solid #334155; background:#0f172a; color:#e2e8f0;">
+                </div>
+                <p style="font-size:11px; color:#64748b; margin:6px 0 0;">Enter cash amount — card calculates automatically.</p>
+            </div>
+            <div class="modal-actions">
+                <button type="button" onclick="closePMModal()" style="background:#334155;">Cancel</button>
+                <button type="button" id="pmConfirmBtn" onclick="confirmPM()" style="background:#10b981;" disabled>Confirm</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const tableColors = ["#0ea5e9", "#3b82f6", "#6366f1", "#8b5cf6", "#a855f7", "#ec4899", "#f43f5e", "#14b8a6", "#10b981", "#22c55e"];
+    const getTableColor = n => tableColors[(Number(n) - 1) % tableColors.length];
+
+    // --- state ---
+    let allOrders = [];
+    let allTables = [];
+    let allProducts = [];
+    let selectedTable = null;
+
+    const manualOrderModal = document.getElementById("manualOrderModal");
+    const manualTableNoInput = document.getElementById("manualTableNoInput");
+
+    // --- helpers ---
+    function getPaymentIcon(type) {
+        if (!type) return "";
+        const lowerType = type.toLowerCase();
+        if (lowerType.includes("card")) return "💳";
+        if (lowerType.includes("cash")) return "💵";
+        return "";
+    }
+
+    // --- load ---
+    async function loadData() {
+        try {
+            const [ordersRes, tablesRes, productsRes] = await Promise.all([
+                fetch("/api/orders"),
+                fetch("/api/tables"),
+                fetch("/api/products")
+            ]);
+            allOrders = await ordersRes.json();
+            allTables = await tablesRes.json();
+            allProducts = await productsRes.json();
+
+            renderTables();
+            renderDetails(selectedTable);
+            if (manualOrderModal.style.display === 'flex') renderManualProductList();
+        } catch (e) {
+            console.error("Error loading data:", e);
+        }
+    }
+
+    function goBack() {
+        selectedTable = null;
+        renderTables();
+        renderDetails(null);
+    }
+
+    // --- render ---
+    function renderTables() {
+        const listEl = document.getElementById("tableList");
+        listEl.innerHTML = "";
+        const tableOrdersMap = new Map();
+
+        allOrders.filter(s => !s.isPaid).forEach(s => {
+            const current = tableOrdersMap.get(s.tableNo) || { total: 0, paymentRequested: false };
+            current.total += (s.price || s.productId?.price || 0) * (s.quantity || 1);
+            if (s.paymentRequested) current.paymentRequested = true;
+            tableOrdersMap.set(s.tableNo, current);
+        });
+
+        const allTableNos = new Set([
+            ...allTables.map(m => m.tableNo),
+            ...tableOrdersMap.keys()
+        ]);
+
+        const tablesData = [...allTableNos].map(no => {
+            const orderData = tableOrdersMap.get(no) || { total: 0, paymentRequested: false };
+            const tableData = allTables.find(m => m.tableNo === no) || { calledWaiter: false, isConnected: false };
+            return { no, ...tableData, ...orderData };
+        })
+        .filter(m => (m.total > 0) || (m.calledWaiter === true) || (m.isConnected === true))
+        .sort((a, b) => a.no - b.no);
+
+        tablesData.forEach(table => {
+            const { no, total, paymentRequested, calledWaiter } = table;
+            const div = document.createElement("div");
+            div.className = "table-card";
+            div.style.background = getTableColor(no);
+
+            if (selectedTable === no) {
+                div.classList.add("active");
+                div.style.background = "#0ea5e9";
+            }
+            if (paymentRequested) {
+                div.classList.add("payment-request");
+                div.style.background = "#eab308";
+            }
+            if (calledWaiter) {
+                div.classList.add("waiter-called");
+                div.style.background = "#f43f5e";
+            }
+
+            div.innerHTML = `<span>Table ${no}</span><span>${total.toFixed(2)}₺</span>`;
+            div.onclick = () => {
+                selectedTable = no;
+                renderTables();
+                renderDetails(no);
+            };
+            listEl.appendChild(div);
+        });
+    }
+
+    function renderDetails(tableNo) {
+        const backBtn = document.getElementById("backBtn");
+        const ordersBody = document.getElementById("ordersBody");
+        const panelTitle = document.getElementById("panelTitle");
+        const paymentStatusBox = document.getElementById("paymentStatusBox");
+        const notificationsBox = document.getElementById("notifications-box");
+        const waiterNotificationsBox = document.getElementById("waiter-notifications-box");
+        const detailTotalBox = document.getElementById("detailTotalBox");
+        const detailPanel = document.getElementById("detail-panel");
+
+        backBtn.style.display = tableNo ? "inline-block" : "none";
+        ordersBody.innerHTML = "";
+        paymentStatusBox.innerHTML = "";
+        notificationsBox.innerHTML = "";
+        waiterNotificationsBox.innerHTML = "";
+        detailTotalBox.innerHTML = "";
+
+        const tablesCallingWaiter = [...new Set(allTables.filter(m => m.calledWaiter).map(m => m.tableNo))];
+        if (tablesCallingWaiter.length) {
+            waiterNotificationsBox.style.display = "block";
+            waiterNotificationsBox.textContent = `🛎️ TABLES CALLING WAITER: ${tablesCallingWaiter.join(", ")}`;
+        } else {
+            waiterNotificationsBox.style.display = "none";
+        }
+
+        const tablesRequestingBill = [...new Set(allOrders.filter(s => s.paymentRequested && !s.isPaid).map(s => s.tableNo))];
+        if (tablesRequestingBill.length) {
+            notificationsBox.style.display = "block";
+            notificationsBox.textContent = `🔔 Tables requesting bill: ${tablesRequestingBill.join(", ")}`;
+        } else {
+            notificationsBox.style.display = "none";
+        }
+
+        if (!tableNo) {
+            detailPanel.classList.remove("detail-table-selected");
+            panelTitle.textContent = "ACTIVE WAITER ORDERS";
+
+            const activeOrders = allOrders.filter(s => !s.isPaid && s.status !== 'Delivered');
+
+            const groupedOrdersMap = new Map();
+            activeOrders.forEach(s => {
+                const productId = s.productId?._id || 'deleted_product';
+                const note = s.note || '';
+                const status = s.status;
+                const key = `${s.tableNo}-${productId}-${note}-${status}`;
+
+                if (!groupedOrdersMap.has(key)) {
+                    groupedOrdersMap.set(key, {
+                        tableNo: s.tableNo,
+                        productName: s.productId?.name || "Deleted Product",
+                        totalQuantity: 0,
+                        date: s.date,
+                        note: note,
+                        orderIds: [],
+                        status: status
+                    });
+                }
+                const group = groupedOrdersMap.get(key);
+                group.totalQuantity += (s.quantity || 1);
+                group.orderIds.push(s._id);
+            });
+
+            groupedOrdersMap.forEach(group => {
+                const rowColor = getTableColor(group.tableNo);
+                const idListJson = JSON.stringify(group.orderIds);
+                const noteHtml = group.note ? `<div class="order-note">Note: ${group.note}</div>` : '';
+
+                let buttonClass = group.status === 'Received' ? 'btn-received' : 'btn-ready';
+                let buttonText = group.status === 'Received' ? 'WAITING KITCHEN' : 'DELIVER';
+                let isDisabled = group.status === 'Received' ? 'disabled' : '';
+
+                ordersBody.innerHTML += `
+                    <tr style="background:${rowColor}; color:#fff; font-weight:700;">
+                        <td>${group.tableNo}</td>
+                        <td>${group.productName}${noteHtml} <span style="font-size:12px; color:#0f172a; font-weight:700;">(${group.status})</span></td>
+                        <td>${group.totalQuantity}</td>
+                        <td>${new Date(group.date).toLocaleTimeString()}</td>
+                        <td>
+                            <button class="${buttonClass}" onclick='toggleDeliveryStatus(${idListJson}, false)' ${isDisabled}>
+                                ${buttonText}
+                            </button>
+                        </td>
+                    </tr>`;
+            });
+            return;
+        }
+
+        detailPanel.classList.add("detail-table-selected");
+        panelTitle.textContent = `Table ${tableNo} - Orders`;
+
+        const tableOrdersList = allOrders.filter(s => s.tableNo === tableNo && !s.isPaid);
+
+        const groupedTableOrdersMap = new Map();
+        tableOrdersList.forEach(s => {
+            const productId = s.productId?._id || 'deleted_product';
+            const note = s.note || '';
+            const isDelivered = !!s.isDelivered;
+            const key = `${productId}-${isDelivered}-${note}`;
+
+            if (!groupedTableOrdersMap.has(key)) {
+                groupedTableOrdersMap.set(key, {
+                    tableNo: s.tableNo,
+                    productName: s.productId?.name || "Deleted Product",
+                    totalQuantity: 0,
+                    date: s.date,
+                    isDelivered: isDelivered,
+                    note: note,
+                    orderIds: []
+                });
+            }
+            const group = groupedTableOrdersMap.get(key);
+            group.totalQuantity += (s.quantity || 1);
+            group.orderIds.push(s._id);
+        });
+
+        groupedTableOrdersMap.forEach(group => {
+            const idListJson = JSON.stringify(group.orderIds);
+            const currentDeliveredStatus = group.isDelivered;
+            const noteHtml = group.note ? `<div class="order-note">Note: ${group.note}</div>` : '';
+            const firstOrderId = group.orderIds[0];
+
+            ordersBody.innerHTML += `
+                <tr>
+                    <td>${group.tableNo}</td>
+                    <td>${group.productName}${noteHtml}</td>
+                    <td>${group.totalQuantity}</td>
+                    <td>${new Date(group.date).toLocaleTimeString()}</td>
+                    <td style="display: flex; gap: 5px; justify-content: center; align-items: center;">
+                        <button onclick='toggleDeliveryStatus(${idListJson}, ${currentDeliveredStatus})' title="Change delivery status">
+                            ${currentDeliveredStatus ? "✅" : "❌"}
+                        </button>
+                        <button class="btn-delete" onclick="deleteOrder('${firstOrderId}', '${group.productName}', ${group.tableNo})" title="Delete 1 item from this group">
+                            Delete (-1)
+                        </button>
+                    </td>
+                </tr>`;
+        });
+
+        const totalAmountValue = tableOrdersList.reduce((acc, s) => acc + (s.price || s.productId?.price || 0) * (s.quantity || 1), 0);
+        detailTotalBox.innerHTML = `<h3>Total Amount: ${totalAmountValue.toFixed(2)}₺</h3>`;
+        detailTotalBox.innerHTML += `
+            <div style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 10px;">
+                <button onclick="openReceiptModal(${tableNo})" style="background:#0ea5e9; flex: 1; order: -1; font-weight: bold;">
+                    🧾 GET / PRINT RECEIPT
+                </button>
+                <button onclick="openManualOrderModal(${tableNo})" style="background:#10b981; flex: 1;">
+                    + Add Order
+                </button>
+                <button onclick="moveTable(${tableNo})" style="background:#8b5cf6; flex: 1;">
+                    Move Table
+                </button>
+                <button onclick="completePayment(${tableNo})" style="background:#e74c3c; flex: 1; min-width: 100px;">
+                    Close Table (Paid)
+                </button>
+            </div>
+        `;
+
+        const tableDataInfo = allTables.find(m => m.tableNo === tableNo);
+        if (tableDataInfo && tableDataInfo.calledWaiter) {
+            paymentStatusBox.innerHTML += `
+                <div class="payment-box" style="background:#5f0000; border:1px solid #f43f5e; color:#ffcaca;">
+                    <h3 style="margin:0 0 10px 0;">🛎️ TABLE CALLED WAITER</h3>
+                    <button onclick="waiterAttended(${tableNo})" style="background:#f43f5e; color:#fff;">Attended to Customer</button>
+                </div>
+            `;
+        }
+
+        const paymentReqOrder = tableOrdersList.find(s => s.paymentRequested);
+        if (!paymentReqOrder) {
+            if (!tableDataInfo || !tableDataInfo.calledWaiter) {
+                paymentStatusBox.innerHTML += `<p style="color:orange">Active orders continue...</p>`;
+            }
+            return;
+        }
+
+        let paymentInfoText = "";
+
+        if (paymentReqOrder.splitType === "person") {
+            let methods = paymentReqOrder.paymentMethods || [];
+            const personCount = paymentReqOrder.personCount || methods.length || 1;
+            const perPerson = totalAmountValue / Math.max(personCount, 1);
+            const sortedMethods = methods.map((type, i) => ({ type, i })).sort((a, b) => {
+                const aa = a.type.toLowerCase(), bb = b.type.toLowerCase();
+                if (aa.includes("card") && !bb.includes("card")) return -1;
+                if (bb.includes("card") && !aa.includes("card")) return 1;
+                return 0;
+            });
+            paymentInfoText = `👥 Split between ${personCount} people<ul>${
+                sortedMethods.map(({ type, i }) => `<li>👤 <b>Person ${i + 1}:</b> ${perPerson.toFixed(2)}₺ ${getPaymentIcon(type)} (${type})</li>`).join("")
+            }</ul>`;
+
+        } else if (paymentReqOrder.splitType === "product") {
+            const relatedOrders = allOrders.filter(s => s.tableNo === tableNo);
+            const personGroups = {};
+            const paymentMethodsArr = paymentReqOrder.paymentMethods || [];
+
+            relatedOrders.forEach(s => {
+                const price = Number(s.price || s.productId?.price || 0);
+                const personIndex = s.personIndex || 1;
+                const paymentType = paymentMethodsArr[personIndex - 1] || s.paymentType || "Unspecified";
+                const productName = s.productId?.name || "Product";
+                const note = (s.note || "").trim();
+                const productKey = `${productName}__${note}__${price}`;
+
+                if (!personGroups[personIndex]) {
+                    personGroups[personIndex] = {
+                        products: {},
+                        amount: 0,
+                        paymentType: paymentType
+                    };
+                }
+
+                if (!personGroups[personIndex].products[productKey]) {
+                    personGroups[personIndex].products[productKey] = {
+                        name: productName,
+                        note: note,
+                        qty: 0,
+                        price: price
+                    };
+                }
+
+                personGroups[personIndex].products[productKey].qty += 1;
+                personGroups[personIndex].amount += price;
+            });
+
+            let htmlStr = `<p><b>Total Amount:</b> ${totalAmountValue.toFixed(2)}₺</p><hr>`;
+
+            const sortedPersons = Object.keys(personGroups).map(key => ({
+                person: Number(key),
+                paymentType: personGroups[key].paymentType || "",
+                products: Object.values(personGroups[key].products),
+                amount: personGroups[key].amount
+            })).sort((a, b) => a.person - b.person);
+
+            sortedPersons.forEach(person => {
+                htmlStr += `<div style="margin-bottom:8px;">
+                    <b>👤 Person ${person.person} ${getPaymentIcon(person.paymentType)} (${person.paymentType}):</b><br>
+                    ${person.products.map(item => {
+                        const lineTotal = item.qty * item.price;
+                        const noteText = item.note ? ` - ${item.note}` : "";
+                        return `• ${item.name}${noteText} (${item.qty}x) - ${lineTotal.toFixed(2)}₺`;
+                    }).join("<br>")}
+                    <br><i>Total: ${person.amount.toFixed(2)}₺</i>
+                </div>`;
+            });
+
+            paymentInfoText = htmlStr;
+
+        } else {
+            paymentInfoText = paymentReqOrder.paymentType === "Card" ? "💳 Payment requested by Card"
+                : paymentReqOrder.paymentType === "Cash" ? "💵 Payment requested by Cash"
+                : "💰 Unspecified payment type";
+        }
+
+        paymentStatusBox.innerHTML += `
+            <div class="payment-box" style="background:#3b2f00; border:1px solid #a48200;">
+                <p style="color:yellow; font-weight:700; margin-top:0;">Requested Bill 🔔</p>
+                <p>${paymentInfoText}</p>
+                <button onclick="completePayment(${tableNo})">Mark as Paid</button>
+            </div>`;
+    }
+
+    // --- order actions ---
+    async function deleteOrder(orderId, productName, tableNo) {
+        const orderInfo = allOrders.find(s => s._id === orderId);
+        if (!orderInfo) {
+            alert('Error: Order not found.');
+            return;
+        }
+        const orderPrice = orderInfo.price || orderInfo.productId?.price || 0;
+
+        if (!confirm(`Are you sure you want to permanently delete 1x "${productName}" (price: ${orderPrice.toFixed(2)}₺) from Table ${tableNo}?`)) {
+            return;
+        }
+
+        try {
+            const res = await fetch("/api/delete-order", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ orderId: orderId, tableNo: tableNo, price: orderPrice })
+            });
+
+            if (!res.ok) {
+                throw new Error('Server error');
+            }
+            loadData();
+        } catch (err) {
+            alert('Error: Could not delete order.');
+            console.error(err);
+        }
+    }
+
+    async function toggleDeliveryStatus(idList, currentStatus) {
+        const confirmMsg = currentStatus
+            ? `Mark these ${idList.length} items as NOT DELIVERED?`
+            : `Mark these ${idList.length} items as DELIVERED?`;
+        if (!confirm(confirmMsg)) {
+            return;
+        }
+
+        try {
+            await fetch("/api/order-delivery-status", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ idList: idList, isDelivered: !currentStatus })
+            });
+            loadData();
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    // --- table actions ---
+
+    let _pmTableNo = null;
+
+    function openPMModal(tableNo) {
+        _pmTableNo = tableNo;
+        const tableOrders = allOrders.filter(s => s.tableNo === tableNo && !s.isPaid);
+        const total = tableOrders.reduce((acc, s) => acc + (s.price || s.productId?.price || 0) * (s.quantity || 1), 0);
+        document.getElementById('pmTableNo').textContent = tableNo;
+        document.getElementById('pmTotal').textContent = total.toFixed(2);
+        document.getElementById('pmSplitInputs').style.display = 'none';
+        document.getElementById('pmCashInput').value = '';
+        document.getElementById('pmCardInput').value = '';
+        document.getElementById('pmConfirmBtn').disabled = true;
+        document.querySelectorAll('.pm-btn').forEach(b => b.style.borderColor = '#334155');
+        document.getElementById('paymentMethodModal').style.display = 'flex';
+    }
+
+    function closePMModal() {
+        document.getElementById('paymentMethodModal').style.display = 'none';
+        _pmTableNo = null;
+    }
+
+    function selectPM(method) {
+        document.querySelectorAll('.pm-btn').forEach(b => {
+            b.style.borderColor = b.dataset.method === method ? '#10b981' : '#334155';
+        });
+        const splitInputs = document.getElementById('pmSplitInputs');
+        splitInputs.style.display = method === 'Split' ? 'block' : 'none';
+        document.getElementById('pmConfirmBtn').disabled = method === 'Split';
+        document.getElementById('pmCashInput').value = '';
+        document.getElementById('pmCardInput').value = '';
+        if (method !== 'Split') {
+            document.getElementById('pmConfirmBtn').dataset.method = method;
+        }
+    }
+
+    function onPMSplitInput() {
+        const tableOrders = allOrders.filter(s => s.tableNo === _pmTableNo && !s.isPaid);
+        const total = tableOrders.reduce((acc, s) => acc + (s.price || s.productId?.price || 0) * (s.quantity || 1), 0);
+        const cashEl = document.getElementById('pmCashInput');
+        const cardEl = document.getElementById('pmCardInput');
+        const cash = parseFloat(cashEl.value) || 0;
+        cardEl.value = Math.max(0, total - cash).toFixed(2);
+        document.getElementById('pmConfirmBtn').disabled = false;
+        document.getElementById('pmConfirmBtn').dataset.method = 'Split';
+    }
+
+async function confirmPM() {
+    if (!_pmTableNo) return;
+    const tableNo = _pmTableNo;
+    const method = document.getElementById('pmConfirmBtn').dataset.method;
+    const cashAmount = parseFloat(document.getElementById('pmCashInput').value) || 0;
+    closePMModal();
+    try {
+        await fetch("/api/complete-payment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ tableNo, paymentType: method, cashAmount })
+        });
+        selectedTable = null;
+        loadData();
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+    async function completePayment(tableNo) {
+        const tableOrders = allOrders.filter(s => s.tableNo === tableNo && !s.isPaid);
+
+        // no active orders — just close the table
+        if (tableOrders.length === 0) {
+            if (!confirm("This table has no active orders. Close anyway?")) return;
+            try {
+                await fetch("/api/complete-payment", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ tableNo })
+                });
+                selectedTable = null;
+                loadData();
+            } catch (e) { console.error(e); }
+            return;
+        }
+
+        // customer already requested payment — payment type is already set
+        const hasPaymentRequest = tableOrders.some(s => s.paymentRequested);
+        if (hasPaymentRequest) {
+            if (!confirm("Mark this table as paid?")) return;
+            try {
+                await fetch("/api/complete-payment", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ tableNo })
+                });
+                selectedTable = null;
+                loadData();
+            } catch (e) { console.error(e); }
+            return;
+        }
+
+        // orders exist but no payment request — ask waiter to select method
+        openPMModal(tableNo);
+    }
+
+    async function waiterAttended(tableNo) {
+        if (!confirm(`Mark Table ${tableNo} as attended? (Removes waiter call alert)`)) {
+            return;
+        }
+        try {
+            await fetch("/api/waiter-attended", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ tableNo })
+            });
+            loadData();
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    async function moveTable(sourceTableNo) {
+        const targetTableNo = prompt(`Enter new table number for Table ${sourceTableNo} (e.g. 15):`);
+        if (!targetTableNo || isNaN(targetTableNo) || Number(targetTableNo) < 1) {
+            alert("Invalid table number. Operation cancelled.");
+            return;
+        }
+        if (Number(targetTableNo) === sourceTableNo) {
+            alert("Source and target table cannot be the same. Operation cancelled.");
+            return;
+        }
+        if (confirm(`Are you sure you want to move all orders from Table ${sourceTableNo} to Table ${targetTableNo}?`)) {
+            try {
+                const res = await fetch("/api/move-table", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ sourceTable: Number(sourceTableNo), targetTable: Number(targetTableNo) })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    alert("Table successfully moved!");
+                    goBack();
+                    loadData();
+                } else {
+                    alert(`Error: ${data.message || 'Table could not be moved'}`);
+                }
+            } catch (err) {
+                alert("Could not connect to server during operation.");
+            }
+        }
+    }
+
+    // --- manual order ---
+    let manualCart = [];
+
+    function renderManualProductList() {
+        const query = (document.getElementById('manualProductSearch')?.value || '').toLowerCase();
+        const listEl = document.getElementById('manualProductList');
+        if (!listEl) return;
+        const filtered = allProducts.filter(p => p.name.toLowerCase().includes(query));
+        if (filtered.length === 0) {
+            listEl.innerHTML = `<div style="padding:12px; color:#94a3b8; font-size:13px; text-align:center;">No products found.</div>`;
+            return;
+        }
+        listEl.innerHTML = filtered.map(p => {
+            const imgHtml = p.photo
+                ? `<img src="${p.photo}" alt="" style="width:40px; height:40px; object-fit:cover; border-radius:6px; flex-shrink:0;">`
+                : `<div style="width:40px; height:40px; border-radius:6px; background:#1e293b; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:18px;">🍽️</div>`;
+            return `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; border-bottom:1px solid #1e293b; gap:10px;">
+                ${imgHtml}
+                <div style="flex:1; min-width:0;">
+                    <div style="font-size:13px; font-weight:600; color:#e2e8f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.name}</div>
+                    <div style="font-size:11px; color:#94a3b8;">${p.price.toFixed(2)}₺</div>
+                </div>
+                <button onclick="addToManualCart('${p._id}')"
+                        style="padding:5px 12px; font-size:12px; background:#0ea5e9; color:#fff; border:none; border-radius:6px; cursor:pointer; white-space:nowrap; flex-shrink:0;">
+                    + Add
+                </button>
+            </div>`;
+        }).join('');
+    }
+
+    function addToManualCart(productId) {
+        const product = allProducts.find(p => p._id === productId);
+        if (!product) return;
+        const existing = manualCart.find(i => i.productId === productId);
+        if (existing) {
+            existing.quantity++;
+        } else {
+            manualCart.push({ productId: product._id, name: product.name, price: product.price, quantity: 1, note: '' });
+        }
+        renderManualCart();
+    }
+
+    function removeFromManualCart(idx) {
+        manualCart.splice(idx, 1);
+        renderManualCart();
+    }
+
+    function changeManualQty(idx, delta) {
+        manualCart[idx].quantity += delta;
+        if (manualCart[idx].quantity <= 0) manualCart.splice(idx, 1);
+        renderManualCart();
+    }
+
+    function updateManualCartNote(idx, value) {
+        manualCart[idx].note = value;
+    }
+
+    function renderManualCart() {
+        const cartEl = document.getElementById('manualCartItems');
+        const totalEl = document.getElementById('manualOrderTotal');
+        if (manualCart.length === 0) {
+            cartEl.innerHTML = `<div style="padding:10px; color:#475569; font-size:12px; text-align:center;">No items added yet.</div>`;
+            totalEl.textContent = '';
+            return;
+        }
+        const total = manualCart.reduce((s, i) => s + i.price * i.quantity, 0);
+        totalEl.textContent = `Total: ${total.toFixed(2)}₺`;
+        cartEl.innerHTML = manualCart.map((item, idx) => `
+            <div style="padding:8px 0; border-bottom:1px solid #1e293b;">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                    <div style="font-size:13px; font-weight:600; color:#e2e8f0; flex:1;">${item.name}</div>
+                    <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                        <button onclick="changeManualQty(${idx}, -1)"
+                                style="padding:2px 8px; background:#334155; font-size:14px; border:none; border-radius:4px; cursor:pointer; color:#e2e8f0;">−</button>
+                        <span style="min-width:20px; text-align:center; font-weight:700;">${item.quantity}</span>
+                        <button onclick="changeManualQty(${idx}, 1)"
+                                style="padding:2px 8px; background:#334155; font-size:14px; border:none; border-radius:4px; cursor:pointer; color:#e2e8f0;">+</button>
+                        <span style="font-size:12px; color:#94a3b8; min-width:52px; text-align:right;">${(item.price * item.quantity).toFixed(2)}₺</span>
+                        <button onclick="removeFromManualCart(${idx})"
+                                style="padding:2px 8px; background:#e74c3c; font-size:12px; border:none; border-radius:4px; cursor:pointer; color:#fff;">✕</button>
+                    </div>
+                </div>
+                <input type="text" placeholder="Note (optional)"
+                       value="${item.note}"
+                       oninput="updateManualCartNote(${idx}, this.value)"
+                       style="margin-top:5px; width:100%; padding:5px 8px; border-radius:6px; border:1px solid #334155; background:#0f172a; color:#e2e8f0; font-size:12px; box-sizing:border-box;">
+            </div>
+        `).join('');
+    }
+
+    function openManualOrderModal(tableNo) {
+        manualCart = [];
+        document.getElementById('manualProductSearch').value = '';
+        renderManualProductList();
+        renderManualCart();
+        if (tableNo) {
+            document.getElementById('manualOrderTitle').textContent = `Order for Table ${tableNo}`;
+            manualTableNoInput.value = tableNo;
+            manualTableNoInput.readOnly = true;
+        } else {
+            document.getElementById('manualOrderTitle').textContent = 'Manual Order';
+            manualTableNoInput.value = '';
+            manualTableNoInput.readOnly = false;
+        }
+        manualOrderModal.style.display = 'flex';
+    }
+
+    function closeManualOrderModal() {
+        manualOrderModal.style.display = 'none';
+        manualCart = [];
+    }
+
+    async function submitManualOrder() {
+        const tableNo = Number(manualTableNoInput.value);
+        if (!tableNo) { alert('Please enter a table number.'); return; }
+        if (manualCart.length === 0) { alert('Please add at least one product.'); return; }
+        try {
+            for (const item of manualCart) {
+                await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tableNo, productId: item.productId, quantity: item.quantity, note: item.note, addedBy: 'Waiter', price: item.price })
+                });
+            }
+            closeManualOrderModal();
+            await loadData();
+            if (selectedTable !== tableNo) selectedTable = tableNo;
+            renderTables();
+            renderDetails(tableNo);
+        } catch (err) {
+            alert('An error occurred while adding the order.');
+        }
+    }
+
+    // --- receipt ---
+    async function openReceiptModal(tableNo) {
+        const receiptModalObj = document.getElementById('receiptModal');
+        const receiptContentObj = document.getElementById('receiptContent');
+        receiptContentObj.innerHTML = `<div class="receipt-header">Loading receipt...</div>`;
+        receiptModalObj.style.display = 'flex';
+
+        try {
+            const response = await fetch(`/api/table-receipt/${tableNo}`, {
+                credentials: 'include'
+            });
+
+            if (response.status === 401) {
+                receiptContentObj.innerHTML = `
+                    <div class="receipt-header" style="color:red;">Auth Error. Please refresh.</div>
+                    <button onclick="closeReceiptModal()" style="background: #334155; color: #fff; width: 100%; margin-top: 15px;" class="print-button">Close</button>
+                `;
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error('Could not fetch receipt data.');
+            }
+
+            const receiptDataObj = await response.json();
+
+            if (receiptDataObj.orders.length === 0) {
+                receiptContentObj.innerHTML = `
+                    <div class="receipt-header" style="color:#e74c3c;">No unpaid orders on this table.</div>
+                    <button onclick="closeReceiptModal()" style="background: #334155; color: #fff; width: 100%; margin-top: 15px;" class="print-button">Close</button>
+                `;
+                return;
+            }
+
+            receiptContentObj.innerHTML = createReceiptHtml(tableNo, receiptDataObj);
+
+        } catch (error) {
+            console.error('Error generating receipt:', error);
+            receiptContentObj.innerHTML = `
+                <div class="receipt-header" style="color: #e74c3c;">Error: Receipt could not be generated.</div>
+                <button onclick="closeReceiptModal()" style="background: #e74c3c; color: #fff; width: 100%; margin-top: 15px;" class="print-button">Close</button>
+            `;
+        }
+    }
+
+    function closeReceiptModal() {
+        document.getElementById('receiptModal').style.display = 'none';
+    }
+
+    function createReceiptHtml(tableNo, data) {
+        let orderListHtml = '';
+        let splitHtml = '';
+        const grandTotal = data.total || 0;
+
+        const noSplit = !data.splitType || data.splitType === null || data.splitType === 'null';
+        const simplePaymentType = noSplit ? (data.splitDetail?.paymentType || '') : '';
+        let paymentTypeHtml = '';
+
+        if (simplePaymentType) {
+            paymentTypeHtml = `
+                <tr style="font-weight: bold;">
+                    <td colspan="2" style="font-size: 14px; color: #333; padding-left: 0; border-top: 1px dashed #000; padding-top: 5px;">PAYMENT METHOD</td>
+                    <td style="text-align: right; font-size: 14px; padding-right: 0; padding-top: 5px; color: #000; border-top: 1px dashed #000;">
+                        ${getPaymentIcon(simplePaymentType)} ${simplePaymentType.toUpperCase()}
+                    </td>
+                </tr>
+            `;
+        }
+
+        data.orders.forEach(group => {
+            const itemTotal = group.totalAmount;
+            const personPrefix = group.personIndex ? `[P${group.personIndex}] ` : '';
+
+            orderListHtml += `
+                <tr>
+                    <td style="width:10%; text-align:right;">${group.totalQuantity}x</td>
+                    <td style="width:60%;">${personPrefix}${group.productName}</td>
+                    <td style="width:30%; text-align:right;">${itemTotal.toFixed(2)}₺</td>
+                </tr>
+            `;
+        });
+
+        const splitDataDetail = data.splitDetail;
+        const hasSplit = !noSplit;
+
+        if (splitDataDetail && hasSplit) {
+            splitHtml += `<div style="margin-top: 15px; font-size: 12px; text-align: center; color: #333;">--- BILL SPLIT ---</div>`;
+
+            if (splitDataDetail.splitType === "person" && splitDataDetail.personCount > 0) {
+                const countOfPersons = splitDataDetail.personCount;
+                const costPerPerson = grandTotal / Math.max(countOfPersons, 1);
+                const methodList = splitDataDetail.paymentMethods || Array(countOfPersons).fill("Unspecified");
+
+                methodList.forEach((type, i) => {
+                    splitHtml += `
+                        <div class="split-item" style="display: flex; justify-content: space-between;">
+                            <span style="color: #222;">👤 Person ${i + 1} (Equal Split)</span>
+                            <strong style="font-size: 13px; color: #000;">${costPerPerson.toFixed(2)}₺ <span class="payment-method-icon">${getPaymentIcon(type)}</span> (${type})</strong>
+                        </div>
+                    `;
+                });
+
+            } else if (splitDataDetail.splitType === "product" && data.splitGroups) {
+                data.splitGroups.forEach(detailInfo => {
+                    splitHtml += `
+                        <div class="split-item" style="display: flex; justify-content: space-between; flex-wrap: wrap;">
+                            <span style="font-weight: bold; width: 100%; color: #222;">👤 PERSON ${detailInfo.personIndex}: ${detailInfo.amount.toFixed(2)}₺ <span class="payment-method-icon">${getPaymentIcon(detailInfo.paymentType)}</span> (${detailInfo.paymentType})</span>
+                            <span style="font-size: 10px; color: #555; width: 100%; padding-left: 5px;">Items: ${detailInfo.products.join(', ')}</span>
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        const finalHtml = `
+            <div class="receipt-header">
+                <h3>QR POS CAFE RECEIPT</h3>
+                <p style="font-size: 12px;">Date: ${new Date().toLocaleString('en-US')}</p>
+                <p>Table: <strong>${tableNo}</strong></p>
+                <hr style="border-top: 1px dashed #000; margin: 10px 0;">
+            </div>
+
+            <table class="receipt-table">
+                <thead>
+                    <tr>
+                        <th style="width:10%; text-align:right;">Qty</th>
+                        <th style="width:60%;">Item Description</th>
+                        <th style="width:30%; text-align:right;">Total (₺)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${orderListHtml}
+                </tbody>
+            </table>
+
+            <hr style="border-top: 1px dashed #000; margin: 10px 0;">
+
+            <table class="receipt-table">
+                <tbody>
+                    <tr class="total-row">
+                        <td colspan="2">GRAND TOTAL (₺)</td>
+                        <td style="text-align: right; font-size: 16px;">${grandTotal.toFixed(2)}₺</td>
+                    </tr>
+                    ${paymentTypeHtml}
+                </tbody>
+            </table>
+
+            ${splitHtml}
+
+            <div style="margin-top: 20px; text-align: center; font-size: 11px; color: #333;">
+                <p>THANK YOU, COME AGAIN.</p>
+            </div>
+
+            <button onclick="window.print()" class="print-button"
+                style="background: #10b981; color: #fff; width: 100%; margin: 15px 0 5px 0;">
+                Print Receipt
+            </button>
+            <button onclick="closeReceiptModal()" class="print-button"
+                style="background: #334155; color: #fff; width: 100%; margin-top: 5px;">
+                Close
+            </button>
+        `;
+        return finalHtml;
+    }
+
+    // --- socket ---
+    const socket = io();
+    socket.on('update_orders', loadData);
+
+    loadData();
+</script>
+</body>
+</html>
