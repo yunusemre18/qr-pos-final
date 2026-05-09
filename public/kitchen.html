@@ -109,6 +109,7 @@
         }
     }
 
+    // marks a group of order items as ready and reloads
     async function markAsReady(idList) {
         if (!confirm(`Mark ${idList.length} items as READY?`)) return;
         try {
@@ -123,6 +124,7 @@
         }
     }
 
+    // groups active kitchen orders and renders them sorted by table and time
     function renderDetails() {
         const ordersBody = document.getElementById("ordersBody");
         const panelTitle = document.getElementById("panelTitle");

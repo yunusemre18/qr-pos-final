@@ -484,6 +484,7 @@
             if (tabName === 'list' || tabName === 'add') getProductList();
         }
 
+        // fills subcategory selects from current product list
         function populateCategoryDropdowns() {
             const subs = [...new Set(allProductsList.map(p => p.category).filter(Boolean))];
             const selects = [
@@ -503,6 +504,7 @@
             });
         }
 
+        // shows new subcategory input when "add new" is chosen in select
         function handleSubCategory(selectEl, containerId, inputId) {
             const container = document.getElementById(containerId);
             const input = document.getElementById(inputId);
@@ -632,6 +634,7 @@
             }
         }
 
+        // reorders two category groups by shifting their orderNo values
         async function swapCategoryOrder(catKey1, catKey2) {
             const group1 = allProductsList.filter(p => `${p.mainCategory} - ${p.category || 'Uncategorized'}` === catKey1);
             const group2 = allProductsList.filter(p => `${p.mainCategory} - ${p.category || 'Uncategorized'}` === catKey2);
@@ -821,6 +824,7 @@
             }
         }
 
+        // builds HTML for a single option group, shared between add and edit forms
         function buildOptionGroupHtml(g, gIdx, isEdit) {
             const prefix = isEdit ? 'editOptions' : 'options';
             const removeFn = isEdit ? 'removeEditOptionGroup' : 'removeOptionGroup';
@@ -945,6 +949,7 @@
             }
         }
 
+        // renders the current page of best-sellers with pagination controls
         function renderBestSellersPage() {
             const tbody = document.getElementById('bestSellersTable');
             const totalItems = bestSellers.length;

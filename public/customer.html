@@ -1049,6 +1049,7 @@ function formatMoney(v) {
     return Number(v || 0).toFixed(2) + '₺';
 }
 
+// builds equal-split preview rows for N people
 function buildPersonPreview(count) {
     const perPerson = count > 0 ? dbTotal / count : 0;
     let html = `<div class="split-preview">
@@ -1065,6 +1066,7 @@ function buildPersonPreview(count) {
     return html;
 }
 
+// groups unpaid orders by product+note+price for item-based split
 function groupOrdersForSplit(orderList) {
     const grouped = new Map();
 
@@ -1316,6 +1318,7 @@ function getTotals() {
     return { local, total };
 }
 
+// syncs cart badge, total display, and item list with current cart state
 function syncUI() {
     fabBadge.textContent = cart.reduce((a, b) => a + b.quantity, 0);
     const { total } = getTotals();
@@ -1359,6 +1362,7 @@ window.updateItemNote = (cartLineId, val) => {
     }
 };
 
+// animates a product image flying into the cart FAB
 function fly(img) {
     const r = img.getBoundingClientRect(), f = fab.getBoundingClientRect();
     const SIZE = 72;
@@ -1609,6 +1613,7 @@ window.splitByProduct_Step1 = () => {
     renderProductStep1();
 };
 
+// fetches current orders and starts item-based split flow
 window.startProductSplit = async () => {
     totalPersons = Number(qs('#productPersonCountVal').textContent);
     currentPersonIndex = 1;
@@ -1624,6 +1629,7 @@ window.startProductSplit = async () => {
     }
 };
 
+// renders item selection UI for the current person in product split
 window.productSelectionScreen = () => {
     const currentOrder = currentPersonIndex;
     const activeOrdersCopy = allOrders.filter(s => Number(s.quantity || 0) > 0);
@@ -1709,6 +1715,7 @@ window.updatePersonTotal = () => {
     }
 };
 
+// saves current person's selection and advances or finalises the split
 window.productPersonDone = () => {
     const activeOrders = allOrders.filter(s => Number(s.quantity || 0) > 0);
     const selectedIds = [];
@@ -1776,18 +1783,13 @@ window.productPersonDone = () => {
 };
 
 // --- data ---
+// restores cart from localStorage on page load
 function loadCartFromStorage() {
     try {
-        const storedCart = localStorage.getItem(CART_STORAGE_KEY);
-        if (storedCart) {
-            const parsedCart = JSON.parse(storedCart);
-            if (Array.isArray(parsedCart) && parsedCart.length > 0) {
-                cart = parsedCart;
-            } else {
-                cart = [];
-            }
-        } else {
-            cart = [];
+        const stored = localStorage.getItem(CART_STORAGE_KEY);
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed) && parsed.length > 0) cart = parsed;
         }
     } catch (e) {
         console.error("Error loading cart from Local Storage:", e);
@@ -1795,6 +1797,7 @@ function loadCartFromStorage() {
     }
 }
 
+// fetches server-side order total and updates bill/waiter button states
 async function refreshRemoteTotal() {
     try {
         const [ordersRes, tablesRes] = await Promise.all([
@@ -1811,8 +1814,8 @@ async function refreshRemoteTotal() {
         fabTotal.textContent = combinedTotal.toFixed(2) + '₺';
         grand.textContent = combinedTotal.toFixed(2) + '₺';
 
-        const paymentPending = s.some(x => !x.isPaid && x.paymentRequested);
-        updateBillButton(paymentPending);
+        const hasPendingPayment = s.some(x => !x.isPaid && x.paymentRequested);
+        updateBillButton(hasPendingPayment);
 
         const myTable = tables.find(t => t.tableNo === tableNo);
         updateCallWaiterBtn(myTable ? !!myTable.calledWaiter : false);
@@ -1821,7 +1824,7 @@ async function refreshRemoteTotal() {
     } catch (e) {}
 }
 
-// --- helpers ---
+// --- ui ---
 
 let _toastTimer;
 function showToast(msg, type = 't-info', ms = 2800) {
@@ -1832,6 +1835,7 @@ function showToast(msg, type = 't-info', ms = 2800) {
     _toastTimer = setTimeout(() => t.classList.remove('show'), ms);
 }
 
+// toggles bill request button between request and cancel states
 function updateBillButton(requested) {
     paymentPending = requested;
     const btn = qs('#askBill');
@@ -1874,6 +1878,7 @@ function updateBillButton(requested) {
     }
 }
 
+// disables call waiter button if waiter is already notified
 function updateCallWaiterBtn(called) {
     const btn = qs('#btnCallWaiter');
     if (!btn) return;
@@ -1892,6 +1897,7 @@ function updateCallWaiterBtn(called) {
     }
 }
 
+// renders My Orders tab with live status of this table's orders
 async function renderOldOrders(allSip) {
     if (!allSip) {
         try {
@@ -1963,6 +1969,7 @@ async function renderOldOrders(allSip) {
     oldOrdersEl.innerHTML = html;
 }
 
+// notifies server that this table is active after QR scan
 async function notifyConnection() {
     try {
         await fetch('/api/table-connect', {
@@ -2124,7 +2131,7 @@ optionsForm.onsubmit = (e) => {
     const note = selectedNotes.join(', ');
     addToCart(product, updatedPrice, note);
     window.closeModal('options');
-    const thumbImg = qs(`.thumb[data-id="${productId}"] img`) || qs('.fab svg'); 
+    const thumbImg = qs(`.thumb[data-id="${productId}"] img`);
     fly(thumbImg);
 };
 

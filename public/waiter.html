@@ -481,6 +481,7 @@
     const manualTableNoInput = document.getElementById("manualTableNoInput");
 
     // --- helpers ---
+    // returns payment emoji for card/cash type strings
     function getPaymentIcon(type) {
         if (!type) return "";
         const lowerType = type.toLowerCase();
@@ -809,8 +810,7 @@
                     <b>👤 Person ${person.person} ${getPaymentIcon(person.paymentType)} (${person.paymentType}):</b><br>
                     ${person.products.map(item => {
                         const lineTotal = item.qty * item.price;
-                        const noteText = item.note ? ` - ${item.note}` : "";
-                        return `• ${item.name}${noteText} (${item.qty}x) - ${lineTotal.toFixed(2)}₺`;
+                        return `• ${item.name} (${item.qty}x) - ${lineTotal.toFixed(2)}₺`;
                     }).join("<br>")}
                     <br><i>Total: ${person.amount.toFixed(2)}₺</i>
                 </div>`;
@@ -919,6 +919,7 @@
         }
     }
 
+    // auto-calculates card portion as total minus entered cash
     function onPMSplitInput() {
         const tableOrders = allOrders.filter(s => s.tableNo === _pmTableNo && !s.isPaid);
         const total = tableOrders.reduce((acc, s) => acc + (s.price || s.productId?.price || 0) * (s.quantity || 1), 0);
@@ -949,6 +950,7 @@ async function confirmPM() {
     }
 }
 
+    // closes table — opens PM modal if no payment request, or marks paid directly
     async function completePayment(tableNo) {
         const tableOrders = allOrders.filter(s => s.tableNo === tableNo && !s.isPaid);
 
@@ -1170,6 +1172,7 @@ async function confirmPM() {
     }
 
     // --- receipt ---
+    // fetches receipt data and opens receipt modal for a table
     async function openReceiptModal(tableNo) {
         const receiptModalObj = document.getElementById('receiptModal');
         const receiptContentObj = document.getElementById('receiptContent');
@@ -1218,6 +1221,7 @@ async function confirmPM() {
         document.getElementById('receiptModal').style.display = 'none';
     }
 
+    // builds receipt HTML from order list and split detail data
     function createReceiptHtml(tableNo, data) {
         let orderListHtml = '';
         let splitHtml = '';

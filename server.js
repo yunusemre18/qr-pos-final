@@ -128,6 +128,7 @@ mongoose
 
 
 
+// Product routes
 app.post("/api/products", basicAuthMiddleware, AdminAuth, upload.single('photoFile'), async (req, res) => {
     try {
         const { name, price, category, mainCategory, description, prepLocation, optionsJSON, generatedFileName } = req.body;
@@ -188,6 +189,7 @@ app.post("/api/reorder-products", basicAuthMiddleware, AdminAuth, async (req, re
     }
 });
 
+// Table routes
 app.post("/api/table-connect", async (req, res) => {
     try {
         const { tableNo } = req.body;
@@ -212,6 +214,7 @@ app.get("/api/tables", async (req, res) => {
     }
 });
 
+// Order routes
 app.post("/api/orders", async (req, res) => {
     try {
         const { tableNo, productId, quantity, note, addedBy, price } = req.body;
@@ -269,6 +272,7 @@ app.get("/api/orders", async (req, res) => {
     }
 });
 
+// Payment routes
 app.post("/api/request-payment", async (req, res) => {
     try {
         const { tableNo, paymentType, splitType, personCount, paymentMethods, persons } = req.body;
@@ -411,6 +415,7 @@ app.post("/api/cancel-payment", async (req, res) => {
     }
 });
 
+// Service routes
 app.post("/api/waiter-attended", basicAuthMiddleware, WaiterAuth, async (req, res) => {
     try {
         await Table.findOneAndUpdate({ tableNo: req.body.tableNo }, { $set: { calledWaiter: false } });
@@ -461,6 +466,7 @@ app.post("/api/delete-order", basicAuthMiddleware, WaiterAuth, async (req, res) 
     }
 });
 
+// Admin routes
 app.get("/api/best-sellers", basicAuthMiddleware, AdminAuth, async (req, res) => {
     try {
         const topProducts = await Product.find({}).select('name salesCount price mainCategory').sort({ salesCount: -1 }).lean();
