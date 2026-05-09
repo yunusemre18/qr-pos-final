@@ -480,8 +480,6 @@
     const manualOrderModal = document.getElementById("manualOrderModal");
     const manualTableNoInput = document.getElementById("manualTableNoInput");
 
-    // --- helpers ---
-    // returns payment emoji for card/cash type strings
     function getPaymentIcon(type) {
         if (!type) return "";
         const lowerType = type.toLowerCase();
