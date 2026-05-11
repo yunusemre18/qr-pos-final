@@ -178,8 +178,16 @@
             return;
         }
 
+        const tableFirstTime = {};
+        groupedOrdersMap.forEach(group => {
+            const t = group.tableNo;
+            const d = new Date(group.date).getTime();
+            if (!tableFirstTime[t] || d < tableFirstTime[t]) tableFirstTime[t] = d;
+        });
+
         const sortedGroups = Array.from(groupedOrdersMap.values()).sort((a, b) => {
-            if (a.tableNo !== b.tableNo) return a.tableNo - b.tableNo;
+            const tableDiff = tableFirstTime[a.tableNo] - tableFirstTime[b.tableNo];
+            if (tableDiff !== 0) return tableDiff;
             return new Date(a.date) - new Date(b.date);
         });
 
