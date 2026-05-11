@@ -954,14 +954,17 @@ input, textarea, select {
         <div style="padding-top: 8px;">
             <textarea id="orderNoteArea" placeholder="General note for the entire order..."></textarea>
         </div>
-        <div class="tot">
+        <div class="tot" style="position:relative;">
             <span>Total</span>
             <button id="clearCartBtn" style="
+                position:absolute;
+                left:50%;
+                transform:translateX(-50%);
                 background:none;
                 border:none;
                 cursor:pointer;
-                margin-right:10px;
                 opacity:.8;
+                padding:0;
             ">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
                     <path d="M3 6h18" stroke="#ff3b3b" stroke-width="1.6" stroke-linecap="round"/>

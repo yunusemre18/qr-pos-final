@@ -489,6 +489,7 @@ app.post("/api/update-product/:id", basicAuthMiddleware, AdminAuth, upload.singl
         io.emit('update_orders');
         res.json({ success: true, product: updatedProduct });
     } catch (err) {
+        cleanupUploadedFile(req);
         res.status(500).json({ success: false });
     }
 });
