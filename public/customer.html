@@ -2082,6 +2082,8 @@ qs('#sendOrder').onclick = async () => {
         return;
     }
     if (!cart.length) { showToast('Cart is empty.', 't-warning'); return; }
+    const btn = qs('#sendOrder');
+    btn.disabled = true;
     const generalNote = qs('#orderNoteArea').value || "";
     try {
         for (const u of cart) {
@@ -2110,6 +2112,8 @@ qs('#sendOrder').onclick = async () => {
         closeSheet();
     } catch (e) {
         showToast('Error sending order. Please try again.', 't-error');
+    } finally {
+        btn.disabled = false;
     }
 };
 

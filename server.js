@@ -192,7 +192,7 @@ app.post("/api/reorder-products", basicAuthMiddleware, AdminAuth, async (req, re
 // Table routes
 app.post("/api/table-connect", async (req, res) => {
     try {
-        const { tableNo } = req.body;
+        const tableNo = Number(req.body.tableNo);
         await Table.findOneAndUpdate(
             { tableNo },
             { $set: { isConnected: true } },
@@ -217,7 +217,8 @@ app.get("/api/tables", async (req, res) => {
 // Order routes
 app.post("/api/orders", async (req, res) => {
     try {
-        const { tableNo, productId, quantity, note, addedBy, price } = req.body;
+        const { productId, quantity, note, addedBy, price } = req.body;
+        const tableNo = Number(req.body.tableNo);
         if (!tableNo || !productId || !quantity || price === undefined) {
             return res.status(400).json({ message: "Missing parameter" });
         }
@@ -252,7 +253,7 @@ app.post("/api/orders", async (req, res) => {
 
 app.post("/api/call-waiter", async (req, res) => {
     try {
-        const { tableNo } = req.body;
+        const tableNo = Number(req.body.tableNo);
         await Table.findOneAndUpdate({ tableNo }, { $set: { calledWaiter: true } }, { upsert: true, new: true });
         io.emit('update_orders');
         res.json({ success: true });
@@ -275,7 +276,8 @@ app.get("/api/orders", async (req, res) => {
 // Payment routes
 app.post("/api/request-payment", async (req, res) => {
     try {
-        const { tableNo, paymentType, splitType, personCount, paymentMethods, persons } = req.body;
+        const { paymentType, splitType, personCount, paymentMethods, persons } = req.body;
+        const tableNo = Number(req.body.tableNo);
         if (!tableNo) return res.status(400).json({ message: "Table missing" });
 
         if (!splitType) {
@@ -310,8 +312,18 @@ app.post("/api/request-payment", async (req, res) => {
                 });
             });
 
-            if (newOrders.length) await Order.insertMany(newOrders);
-            if (deleteIds.size) await Order.deleteMany({ _id: [...deleteIds] });
+            const session = await mongoose.startSession();
+            session.startTransaction();
+            try {
+                if (newOrders.length) await Order.insertMany(newOrders, { session });
+                if (deleteIds.size) await Order.deleteMany({ _id: [...deleteIds] }, { session });
+                await session.commitTransaction();
+            } catch (transErr) {
+                await session.abortTransaction();
+                throw transErr;
+            } finally {
+                session.endSession();
+            }
         }
 
         io.emit('update_orders');
@@ -345,7 +357,8 @@ app.post("/api/order-delivery-status", basicAuthMiddleware, WaiterAuth, async (r
 
 app.post("/api/complete-payment", basicAuthMiddleware, WaiterAuth, async (req, res) => {
     try {
-        const { tableNo, paymentType, cashAmount } = req.body;
+        const { paymentType, cashAmount } = req.body;
+        const tableNo = Number(req.body.tableNo);
 
        if (paymentType === 'Split') {
             const orders = await Order.find({ tableNo, isPaid: false }).lean();
@@ -403,7 +416,7 @@ app.post("/api/complete-payment", basicAuthMiddleware, WaiterAuth, async (req, r
 
 app.post("/api/cancel-payment", async (req, res) => {
     try {
-        const { tableNo } = req.body;
+        const tableNo = Number(req.body.tableNo);
         await Order.updateMany(
             { tableNo, isPaid: false },
             { $set: { paymentRequested: false, paymentType: null, splitType: null, personCount: null, paymentMethods: [], personIndex: null } }
@@ -437,15 +450,19 @@ app.post("/api/move-table", basicAuthMiddleware, WaiterAuth, async (req, res) =>
             return res.status(400).json({ success: false, message: "Target table is occupied." });
         }
 
+        if (targetTableData && targetTableData.isConnected) {
+            return res.status(400).json({ success: false, message: "Target table has an active session. Please close that table first." });
+        }
+
         const sourceTableData = await Table.findOne({ tableNo: sourceTable });
 
         await Order.updateMany({ tableNo: sourceTable, isPaid: false }, { $set: { tableNo: targetTable } });
         await Table.findOneAndUpdate(
             { tableNo: targetTable },
-            { $set: { total: sourceTableData?.total || 0, calledWaiter: sourceTableData?.calledWaiter || false } },
+            { $set: { total: sourceTableData?.total || 0, calledWaiter: sourceTableData?.calledWaiter || false, isConnected: true } },
             { upsert: true }
         );
-        await Table.findOneAndUpdate({ tableNo: sourceTable }, { $set: { total: 0, calledWaiter: false } });
+        await Table.findOneAndUpdate({ tableNo: sourceTable }, { $set: { total: 0, calledWaiter: false, isConnected: false } });
 
         io.emit('update_orders');
         res.json({ success: true });
@@ -456,7 +473,8 @@ app.post("/api/move-table", basicAuthMiddleware, WaiterAuth, async (req, res) =>
 
 app.post("/api/delete-order", basicAuthMiddleware, WaiterAuth, async (req, res) => {
     try {
-        const { orderId, tableNo, price } = req.body;
+        const { orderId, price } = req.body;
+        const tableNo = Number(req.body.tableNo);
         await Order.deleteOne({ _id: orderId });
         await Table.findOneAndUpdate({ tableNo: tableNo }, { $inc: { total: -Number(price) } });
         io.emit('update_orders');
